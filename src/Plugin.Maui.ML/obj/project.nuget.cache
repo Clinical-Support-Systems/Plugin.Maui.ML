@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "zbAlKiJAewlVKx7jGAtaIiMh42+aqvC2zp5imY2ZjsF9ayL3phFEyr2vHc5ty60nsz5mkLFJm0M9Jsjh9Z9UkA==",
+  "success": true,
+  "projectFilePath": "/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/Plugin.Maui.ML.csproj",
+  "expectedPackageFiles": [
+    "/home/runner/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.0/microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.ml.onnxruntime/1.16.3/microsoft.ml.onnxruntime.1.16.3.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.ml.onnxruntime.managed/1.16.3/microsoft.ml.onnxruntime.managed.1.16.3.nupkg.sha512",
+    "/home/runner/.nuget/packages/system.memory/4.5.5/system.memory.4.5.5.nupkg.sha512"
+  ],
+  "logs": []
+}
