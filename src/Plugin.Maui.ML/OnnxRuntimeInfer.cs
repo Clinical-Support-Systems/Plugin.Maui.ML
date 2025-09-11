@@ -98,11 +98,11 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         Dictionary<string, Tensor<float>> inputs, 
         CancellationToken cancellationToken = default)
     {
-        if (_session == null)
-            throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
-
         if (inputs == null || inputs.Count == 0)
             throw new ArgumentException("Inputs cannot be null or empty", nameof(inputs));
+
+        if (_session == null)
+            throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
 
         return await Task.Run(() =>
         {

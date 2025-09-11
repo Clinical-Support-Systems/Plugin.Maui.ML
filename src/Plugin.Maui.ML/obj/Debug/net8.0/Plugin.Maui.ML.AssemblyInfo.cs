@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute("A .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS" +
     " support for ML model files")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ffca548391cd6bf2ac7ac173f0be21d56c84335e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37dfe4fa8dced86246ca1b87ce93e3c24ef3134f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Plugin.Maui.ML")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Plugin.Maui.ML")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
