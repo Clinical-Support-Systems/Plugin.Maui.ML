@@ -1,0 +1,13 @@
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.csproj.AssemblyReference.cache
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.GeneratedMSBuildEditorConfig.editorconfig
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.AssemblyInfoInputs.cache
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.AssemblyInfo.cs
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.csproj.CoreCompileInputs.cache
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.sourcelink.json
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/bin/Debug/net8.0/Plugin.Maui.ML.deps.json
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/bin/Debug/net8.0/Plugin.Maui.ML.dll
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/bin/Debug/net8.0/Plugin.Maui.ML.pdb
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.dll
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/refint/Plugin.Maui.ML.dll
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/Plugin.Maui.ML.pdb
+/home/runner/work/Plugin.Maui.ML/Plugin.Maui.ML/src/Plugin.Maui.ML/obj/Debug/net8.0/ref/Plugin.Maui.ML.dll
