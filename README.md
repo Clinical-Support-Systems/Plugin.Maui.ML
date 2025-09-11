@@ -1,6 +1,6 @@
 # Plugin.Maui.ML
 
-A comprehensive .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS support for ML model files.
+A comprehensive .NET MAUI plugin that provides ONNX runtime inference capabilities.
 
 ## Features
 
