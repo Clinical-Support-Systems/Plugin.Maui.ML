@@ -49,11 +49,10 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     {
         var providers = new List<string>
         {
-            "CPUExecutionProvider"
+            "CPUExecutionProvider",
+            // CoreML is available on iOS 11+
+            "CoreMLExecutionProvider"
         };
-
-        // CoreML is available on iOS 11+
-        providers.Add("CoreMLExecutionProvider");
 
         return providers;
     }

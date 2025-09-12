@@ -45,11 +45,10 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     {
         var providers = new List<string>
         {
-            "CPUExecutionProvider"
+            "CPUExecutionProvider",
+            // NNAPI would be available on Android API 27+ (Android 8.1+)
+            "NnapiExecutionProvider"
         };
-
-        // NNAPI would be available on Android API 27+ (Android 8.1+)
-        providers.Add("NnapiExecutionProvider");
 
         return providers;
     }

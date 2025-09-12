@@ -54,7 +54,7 @@ public class MLConfiguration
     /// <summary>
     ///     Gets or sets whether to use transient service lifetime (default: false, uses singleton)
     /// </summary>
-    public bool UseTransientService { get; set; } = false;
+    public bool UseTransientService { get; set; }
 
     /// <summary>
     ///     Gets or sets the default model asset path
@@ -64,7 +64,7 @@ public class MLConfiguration
     /// <summary>
     ///     Gets or sets whether to enable performance logging
     /// </summary>
-    public bool EnablePerformanceLogging { get; set; } = false;
+    public bool EnablePerformanceLogging { get; set; }
 
     /// <summary>
     ///     Gets or sets the maximum number of concurrent inference operations

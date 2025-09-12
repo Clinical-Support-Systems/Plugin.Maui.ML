@@ -10,7 +10,7 @@ public class InferenceResult
     /// <summary>
     ///     Gets or sets the output tensors from the inference
     /// </summary>
-    public Dictionary<string, Tensor<float>> Outputs { get; set; } = new();
+    public Dictionary<string, Tensor<float>> Outputs { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the time taken for the inference operation
@@ -20,7 +20,7 @@ public class InferenceResult
     /// <summary>
     ///     Gets or sets any additional metadata about the inference
     /// </summary>
-    public Dictionary<string, object> Metadata { get; set; } = new();
+    public Dictionary<string, object> Metadata { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets whether the inference was successful
@@ -56,17 +56,17 @@ public class ModelInfo
     /// <summary>
     ///     Gets or sets the input specifications
     /// </summary>
-    public List<TensorSpec> Inputs { get; set; } = new();
+    public List<TensorSpec> Inputs { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the output specifications
     /// </summary>
-    public List<TensorSpec> Outputs { get; set; } = new();
+    public List<TensorSpec> Outputs { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets additional model metadata
     /// </summary>
-    public Dictionary<string, string> CustomMetadata { get; set; } = new();
+    public Dictionary<string, string> CustomMetadata { get; set; } = [];
 }
 
 /// <summary>
@@ -82,7 +82,7 @@ public class TensorSpec
     /// <summary>
     ///     Gets or sets the tensor shape
     /// </summary>
-    public int[] Shape { get; set; } = Array.Empty<int>();
+    public int[] Shape { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the tensor data type

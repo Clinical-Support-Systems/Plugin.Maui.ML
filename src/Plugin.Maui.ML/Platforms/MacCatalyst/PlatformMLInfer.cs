@@ -51,11 +51,10 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     {
         var providers = new List<string>
         {
-            "CPUExecutionProvider"
+            "CPUExecutionProvider",
+            // CoreML is available on macOS 10.13+
+            "CoreMLExecutionProvider"
         };
-
-        // CoreML is available on macOS 10.13+
-        providers.Add("CoreMLExecutionProvider");
 
         return providers;
     }
