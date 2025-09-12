@@ -3,6 +3,9 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace Plugin.Maui.ML;
 
+/// <summary>
+///     Implementation of IMLInfer using ONNX Runtime for ML inference.
+/// </summary>
 public class OnnxRuntimeInfer : IMLInfer, IDisposable
 {
     private readonly object _lock = new();
@@ -10,6 +13,9 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
     private InferenceSession? _session;
     private SessionOptions? _sessionOptions;
 
+    /// <summary>
+    ///     Initializes a new instance of the OnnxRuntimeInfer class.
+    /// </summary>
     public OnnxRuntimeInfer()
     {
         _sessionOptions = new SessionOptions();
@@ -18,17 +24,38 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            UnloadModel();
-            _sessionOptions?.Dispose();
-            _sessionOptions = null;
-            _disposed = true;
-        }
+        if (_disposed)
+            return;
+
+        UnloadModel();
+        _sessionOptions?.Dispose();
+        _sessionOptions = null;
+        _disposed = true;
     }
 
+    /// <summary>
+    ///     Gets whether a model is currently loaded.
+    /// </summary>
     public bool IsModelLoaded => _session != null;
 
+    /// <summary>
+    ///     Loads an ONNX model from the specified file path asynchronously.
+    /// </summary>
+    /// <param name="modelPath">
+    ///     Path to the ONNX model file.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     Cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    ///     A task that completes when the model is loaded.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if the model path is null or empty.
+    /// </exception>
+    /// <exception cref="FileNotFoundException">
+    ///     Thrown if the model file does not exist.
+    /// </exception>
     public async Task LoadModelAsync(string modelPath, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(modelPath))
@@ -44,9 +71,21 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         }, cancellationToken);
     }
 
+    /// <summary>
+    ///     Loads an ONNX model from the provided stream asynchronously.
+    /// </summary>
+    /// <param name="modelStream">
+    ///     Stream containing the ONNX model data.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     Cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    ///     A task that completes when the model is loaded.
+    /// </returns>
     public async Task LoadModelAsync(Stream modelStream, CancellationToken cancellationToken = default)
     {
-        if (modelStream == null) throw new ArgumentNullException(nameof(modelStream));
+        ArgumentNullException.ThrowIfNull(modelStream);
         await Task.Run(() =>
         {
             lock (_lock)
@@ -59,6 +98,24 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         }, cancellationToken);
     }
 
+    /// <summary>
+    ///     Loads an ONNX model from MAUI assets asynchronously.
+    /// </summary>
+    /// <param name="assetName">
+    ///     Name of the asset file (e.g., "model.onnx").
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     Cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    ///     A task that completes when the model is loaded.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if the asset name is null or empty.
+    /// </exception>
+    /// <exception cref="FileNotFoundException">
+    ///     Thrown if the asset file does not exist.
+    /// </exception>
     public async Task LoadModelFromAssetAsync(string assetName, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(assetName))
@@ -68,6 +125,21 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         await LoadModelAsync(assetPath, cancellationToken);
     }
 
+    /// <summary>
+    ///     Runs inference using float inputs (all inputs must be float-compatible and
+    /// </summary>
+    /// <param name="inputs">
+    ///     Input tensors for the model, provided as a dictionary mapping input names to Tensor&lt;float&gt; objects.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     Cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    ///     A dictionary of output tensors, mapping output names to Tensor&lt;float&gt; objects.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if the inputs dictionary is null or empty.
+    /// </exception>
     public Task<Dictionary<string, Tensor<float>>> RunInferenceAsync(Dictionary<string, Tensor<float>> inputs,
         CancellationToken cancellationToken = default)
     {
@@ -77,6 +149,21 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         return RunInternal(named, cancellationToken);
     }
 
+    /// <summary>
+    ///     Runs inference using Int64 inputs (e.g., token ids / attention masks).
+    /// </summary>
+    /// <param name="inputs">
+    ///     Input tensors for the model, provided as a dictionary mapping input names to Tensor&lt;long&gt; objects.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     Cancellation token to cancel the operation.
+    /// </param>
+    /// <returns>
+    ///     A dictionary of output tensors, mapping output names to Tensor&lt;float&gt; objects.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    ///     Thrown if the inputs dictionary is null or empty.
+    /// </exception>
     public Task<Dictionary<string, Tensor<float>>> RunInferenceLongInputsAsync(Dictionary<string, Tensor<long>> inputs,
         CancellationToken cancellationToken = default)
     {
@@ -86,6 +173,15 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         return RunInternal(named, cancellationToken);
     }
 
+    /// <summary>
+    ///     Gets input metadata for the loaded model.
+    /// </summary>
+    /// <returns>
+    ///     A dictionary mapping input names to their corresponding NodeMetadata.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown if no model is loaded.
+    /// </exception>
     public Dictionary<string, NodeMetadata> GetInputMetadata()
     {
         if (_session == null) throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
@@ -95,6 +191,15 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         }
     }
 
+    /// <summary>
+    ///     Gets output metadata for the loaded model.
+    /// </summary>
+    /// <returns>
+    ///     A dictionary mapping output names to their corresponding NodeMetadata.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown if no model is loaded.
+    /// </exception>
     public Dictionary<string, NodeMetadata> GetOutputMetadata()
     {
         if (_session == null) throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
@@ -104,6 +209,9 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         }
     }
 
+    /// <summary>
+    ///     Unloads the currently loaded model and releases resources.
+    /// </summary>
     public void UnloadModel()
     {
         lock (_lock)

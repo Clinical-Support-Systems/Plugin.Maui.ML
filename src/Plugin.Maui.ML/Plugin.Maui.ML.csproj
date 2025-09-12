@@ -1,29 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    
-    <!-- Package Information -->
-    <PackageId>Plugin.Maui.ML</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
-    <Authors>Clinical Support Systems</Authors>
-    <Description>A .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS support for ML model files</Description>
-    <PackageProjectUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</RepositoryUrl>
-    <PackageTags>maui;ml;onnx;inference;plugin</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    
-    <!-- Build Configuration -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.16.3" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-  </ItemGroup>
+		<!-- Package Information -->
+		<PackageId>Plugin.Maui.ML</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Authors>Clinical Support Systems</Authors>
+		<Description>A .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS support for ML model files</Description>
+		<PackageProjectUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</RepositoryUrl>
+		<PackageTags>maui;ml;onnx;inference;plugin</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Build Configuration -->
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+		<PackageReference Include="Roslynator.Analyzers" Version="4.14.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.*" />
+
+	</ItemGroup>
 
 </Project>
