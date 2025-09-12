@@ -9,8 +9,7 @@ namespace MauiSample.Models
         public string Description { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
 
-        [JsonIgnore]
-        public int CategoryID { get; set; }
+        [JsonIgnore] public int CategoryID { get; set; }
 
         public Category? Category { get; set; }
 
@@ -18,7 +17,10 @@ namespace MauiSample.Models
 
         public List<Tag> Tags { get; set; } = [];
 
-        public override string ToString() => $"{Name}";
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
     }
 
     public class ProjectsJson

@@ -1,15 +1,15 @@
-using MauiSample.Models;
 using System.Diagnostics.CodeAnalysis;
+using MauiSample.Models;
 
 namespace MauiSample.Utilities
 {
     /// <summary>
-    /// Project Model Extentions
+    ///     Project Model Extentions
     /// </summary>
     public static class ProjectExtentions
     {
         /// <summary>
-        /// Check if the project is null or new.
+        ///     Check if the project is null or new.
         /// </summary>
         /// <param name="project"></param>
         /// <returns></returns>

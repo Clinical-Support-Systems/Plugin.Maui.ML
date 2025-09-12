@@ -1,20 +1,19 @@
-using MauiSample.Models;
 using System.Windows.Input;
+using MauiSample.Models;
 
 namespace MauiSample.Pages.Controls
 {
     public partial class TaskView
     {
+        public static readonly BindableProperty TaskCompletedCommandProperty = BindableProperty.Create(
+            nameof(TaskCompletedCommand),
+            typeof(ICommand),
+            typeof(TaskView));
+
         public TaskView()
         {
             InitializeComponent();
         }
-
-        public static readonly BindableProperty TaskCompletedCommandProperty = BindableProperty.Create(
-            nameof(TaskCompletedCommand),
-            typeof(ICommand),
-            typeof(TaskView),
-            null);
 
         public ICommand TaskCompletedCommand
         {

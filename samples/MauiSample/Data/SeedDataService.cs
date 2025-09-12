@@ -1,19 +1,20 @@
+using System.Text.Json;
 using MauiSample.Models;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace MauiSample.Data
 {
     public class SeedDataService
     {
-        private readonly ProjectRepository _projectRepository;
-        private readonly TaskRepository _taskRepository;
-        private readonly TagRepository _tagRepository;
         private readonly CategoryRepository _categoryRepository;
-        private readonly string _seedDataFilePath = "SeedData.json";
         private readonly ILogger<SeedDataService> _logger;
+        private readonly ProjectRepository _projectRepository;
+        private readonly string _seedDataFilePath = "SeedData.json";
+        private readonly TagRepository _tagRepository;
+        private readonly TaskRepository _taskRepository;
 
-        public SeedDataService(ProjectRepository projectRepository, TaskRepository taskRepository, TagRepository tagRepository, CategoryRepository categoryRepository, ILogger<SeedDataService> logger)
+        public SeedDataService(ProjectRepository projectRepository, TaskRepository taskRepository,
+            TagRepository tagRepository, CategoryRepository categoryRepository, ILogger<SeedDataService> logger)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -26,7 +27,7 @@ namespace MauiSample.Data
         {
             ClearTables();
 
-            await using Stream templateStream = await FileSystem.OpenAppPackageFileAsync(_seedDataFilePath);
+            await using var templateStream = await FileSystem.OpenAppPackageFileAsync(_seedDataFilePath);
 
             ProjectsJson? payload = null;
             try

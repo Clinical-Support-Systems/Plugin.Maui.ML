@@ -1,9 +1,7 @@
 #nullable disable
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiSample.Data;
 using MauiSample.Models;
-using MauiSample.Services;
 
 namespace MauiSample.PageModels
 {
@@ -11,8 +9,7 @@ namespace MauiSample.PageModels
     {
         private readonly ProjectRepository _projectRepository;
 
-        [ObservableProperty]
-        private List<Project> _projects = [];
+        [ObservableProperty] private List<Project> _projects = [];
 
         public ProjectListPageModel(ProjectRepository projectRepository)
         {
@@ -26,13 +23,15 @@ namespace MauiSample.PageModels
         }
 
         [RelayCommand]
-        Task NavigateToProject(Project project)
-            => Shell.Current.GoToAsync($"project?id={project.ID}");
+        private Task NavigateToProject(Project project)
+        {
+            return Shell.Current.GoToAsync($"project?id={project.ID}");
+        }
 
         [RelayCommand]
-        async Task AddProject()
+        private async Task AddProject()
         {
-            await Shell.Current.GoToAsync($"project");
+            await Shell.Current.GoToAsync("project");
         }
     }
 }

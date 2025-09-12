@@ -1,7 +1,4 @@
-﻿using MauiSample.Models;
-using MauiSample.PageModels;
-
-namespace MauiSample.Pages
+﻿namespace MauiSample.Pages
 {
     public partial class MainPage : ContentPage
     {

@@ -5,15 +5,15 @@ using Microsoft.Extensions.Logging;
 namespace MauiSample.Data
 {
     /// <summary>
-    /// Repository class for managing tags in the database.
+    ///     Repository class for managing tags in the database.
     /// </summary>
     public class TagRepository
     {
-        private bool _hasBeenInitialized = false;
         private readonly ILogger _logger;
+        private bool _hasBeenInitialized;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TagRepository"/> class.
+        ///     Initializes a new instance of the <see cref="TagRepository" /> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
         public TagRepository(ILogger<TagRepository> logger)
@@ -22,7 +22,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Initializes the database connection and creates the Tag and ProjectsTags tables if they do not exist.
+        ///     Initializes the database connection and creates the Tag and ProjectsTags tables if they do not exist.
         /// </summary>
         private async Task Init()
         {
@@ -61,9 +61,9 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a list of all tags from the database.
+        ///     Retrieves a list of all tags from the database.
         /// </summary>
-        /// <returns>A list of <see cref="Tag"/> objects.</returns>
+        /// <returns>A list of <see cref="Tag" /> objects.</returns>
         public async Task<List<Tag>> ListAsync()
         {
             await Init();
@@ -89,10 +89,10 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a list of tags associated with a specific project.
+        ///     Retrieves a list of tags associated with a specific project.
         /// </summary>
         /// <param name="projectID">The ID of the project.</param>
-        /// <returns>A list of <see cref="Tag"/> objects.</returns>
+        /// <returns>A list of <see cref="Tag" /> objects.</returns>
         public async Task<List<Tag>> ListAsync(int projectID)
         {
             await Init();
@@ -124,10 +124,10 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a specific tag by its ID.
+        ///     Retrieves a specific tag by its ID.
         /// </summary>
         /// <param name="id">The ID of the tag.</param>
-        /// <returns>A <see cref="Tag"/> object if found; otherwise, null.</returns>
+        /// <returns>A <see cref="Tag" /> object if found; otherwise, null.</returns>
         public async Task<Tag?> GetAsync(int id)
         {
             await Init();
@@ -153,7 +153,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Saves a tag to the database. If the tag ID is 0, a new tag is created; otherwise, the existing tag is updated.
+        ///     Saves a tag to the database. If the tag ID is 0, a new tag is created; otherwise, the existing tag is updated.
         /// </summary>
         /// <param name="item">The tag to save.</param>
         /// <returns>The ID of the saved tag.</returns>
@@ -190,7 +190,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Saves a tag to the database and associates it with a specific project.
+        ///     Saves a tag to the database and associates it with a specific project.
         /// </summary>
         /// <param name="item">The tag to save.</param>
         /// <param name="projectID">The ID of the project.</param>
@@ -213,7 +213,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Deletes a tag from the database.
+        ///     Deletes a tag from the database.
         /// </summary>
         /// <param name="item">The tag to delete.</param>
         /// <returns>The number of rows affected.</returns>
@@ -231,7 +231,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Deletes a tag from a specific project in the database.
+        ///     Deletes a tag from a specific project in the database.
         /// </summary>
         /// <param name="item">The tag to delete.</param>
         /// <param name="projectID">The ID of the project.</param>
@@ -251,7 +251,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Drops the Tag and ProjectsTags tables from the database.
+        ///     Drops the Tag and ProjectsTags tables from the database.
         /// </summary>
         public async Task DropTableAsync()
         {

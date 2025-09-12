@@ -1,5 +1,4 @@
 using Microsoft.ML.OnnxRuntime.Tensors;
-using Plugin.Maui.ML;
 using Xunit;
 
 namespace Plugin.Maui.ML.Tests;
@@ -85,7 +84,7 @@ public class OnnxRuntimeInferTests
         using var infer = new OnnxRuntimeInfer();
         var inputs = new Dictionary<string, Tensor<float>>
         {
-            ["input"] = new DenseTensor<float>(new float[] { 1.0f }, new int[] { 1 })
+            ["input"] = new DenseTensor<float>(new[] { 1.0f }, new[] { 1 })
         };
 
         // Act & Assert
@@ -157,7 +156,7 @@ public class OnnxRuntimeInferTests
         Assert.False(infer.IsModelLoaded);
     }
 
-    [Fact]  
+    [Fact]
     public void Dispose_MultipleCalls_DoesNotThrow()
     {
         // Arrange

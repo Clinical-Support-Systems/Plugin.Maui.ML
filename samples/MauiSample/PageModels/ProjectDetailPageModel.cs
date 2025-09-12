@@ -6,56 +6,73 @@ namespace MauiSample.PageModels
 {
     public partial class ProjectDetailPageModel : ObservableObject, IQueryAttributable, IProjectTaskPageModel
     {
-        private Project? _project;
-        private readonly ProjectRepository _projectRepository;
-        private readonly TaskRepository _taskRepository;
         private readonly CategoryRepository _categoryRepository;
-        private readonly TagRepository _tagRepository;
         private readonly ModalErrorHandler _errorHandler;
+        private readonly ProjectRepository _projectRepository;
+        private readonly TagRepository _tagRepository;
+        private readonly TaskRepository _taskRepository;
 
-        [ObservableProperty]
-        private string _name = string.Empty;
+        [ObservableProperty] private List<Tag> _allTags = [];
 
-        [ObservableProperty]
-        private string _description = string.Empty;
+        [ObservableProperty] private List<Category> _categories = [];
 
-        [ObservableProperty]
-        private List<ProjectTask> _tasks = [];
+        [ObservableProperty] private Category? _category;
 
-        [ObservableProperty]
-        private List<Category> _categories = [];
+        [ObservableProperty] private int _categoryIndex = -1;
 
-        [ObservableProperty]
-        private Category? _category;
+        [ObservableProperty] private string _description = string.Empty;
 
-        [ObservableProperty]
-        private int _categoryIndex = -1;
+        [ObservableProperty] private IconData _icon;
 
-        [ObservableProperty]
-        private List<Tag> _allTags = [];
-
-        [ObservableProperty]
-        private IconData _icon;
-
-        [ObservableProperty]
-        bool _isBusy;
-
-        [ObservableProperty]
-        private List<IconData> _icons = new List<IconData>
+        [ObservableProperty] private List<IconData> _icons = new()
         {
-            new IconData { Icon = FluentUI.ribbon_24_regular, Description = "Ribbon Icon" },
-            new IconData { Icon = FluentUI.ribbon_star_24_regular, Description = "Ribbon Star Icon" },
-            new IconData { Icon = FluentUI.trophy_24_regular, Description = "Trophy Icon" },
-            new IconData { Icon = FluentUI.badge_24_regular, Description = "Badge Icon" },
-            new IconData { Icon = FluentUI.book_24_regular, Description = "Book Icon" },
-            new IconData { Icon = FluentUI.people_24_regular, Description = "People Icon" },
-            new IconData { Icon = FluentUI.bot_24_regular, Description = "Bot Icon" }
+            new IconData
+            {
+                Icon = FluentUI.ribbon_24_regular,
+                Description = "Ribbon Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.ribbon_star_24_regular,
+                Description = "Ribbon Star Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.trophy_24_regular,
+                Description = "Trophy Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.badge_24_regular,
+                Description = "Badge Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.book_24_regular,
+                Description = "Book Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.people_24_regular,
+                Description = "People Icon"
+            },
+            new IconData
+            {
+                Icon = FluentUI.bot_24_regular,
+                Description = "Bot Icon"
+            }
         };
 
-        public bool HasCompletedTasks
-            => _project?.Tasks.Any(t => t.IsCompleted) ?? false;
+        [ObservableProperty] private bool _isBusy;
 
-        public ProjectDetailPageModel(ProjectRepository projectRepository, TaskRepository taskRepository, CategoryRepository categoryRepository, TagRepository tagRepository, ModalErrorHandler errorHandler)
+        [ObservableProperty] private string _name = string.Empty;
+
+        private Project? _project;
+
+        [ObservableProperty] private List<ProjectTask> _tasks = [];
+
+        public ProjectDetailPageModel(ProjectRepository projectRepository, TaskRepository taskRepository,
+            CategoryRepository categoryRepository, TagRepository tagRepository, ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -66,11 +83,14 @@ namespace MauiSample.PageModels
             Tasks = [];
         }
 
+        public bool HasCompletedTasks
+            => _project?.Tasks.Any(t => t.IsCompleted) ?? false;
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.ContainsKey("id"))
             {
-                int id = Convert.ToInt32(query["id"]);
+                var id = Convert.ToInt32(query["id"]);
                 LoadData(id).FireAndForgetSafeAsync(_errorHandler);
             }
             else if (query.ContainsKey("refresh"))
@@ -80,25 +100,29 @@ namespace MauiSample.PageModels
             else
             {
                 Task.WhenAll(LoadCategories(), LoadTags()).FireAndForgetSafeAsync(_errorHandler);
-                _project = new();
+                _project = new Project();
                 _project.Tags = [];
                 _project.Tasks = [];
                 Tasks = _project.Tasks;
             }
         }
 
-        private async Task LoadCategories() =>
+        private async Task LoadCategories()
+        {
             Categories = await _categoryRepository.ListAsync();
+        }
 
-        private async Task LoadTags() =>
+        private async Task LoadTags()
+        {
             AllTags = await _tagRepository.ListAsync();
+        }
 
         private async Task RefreshData()
         {
             if (_project.IsNullOrNew())
             {
                 if (_project is not null)
-                    Tasks = new(_project.Tasks);
+                    Tasks = new List<ProjectTask>(_project.Tasks);
 
                 return;
             }
@@ -136,7 +160,8 @@ namespace MauiSample.PageModels
                 {
                     tag.IsSelected = _project.Tags.Any(t => t.ID == tag.ID);
                 }
-                AllTags = new(allTags);
+
+                AllTags = new List<Tag>(allTags);
             }
             catch (Exception e)
             {
@@ -211,9 +236,10 @@ namespace MauiSample.PageModels
 
             // Pass the project so if this is a new project we can just add
             // the tasks to the project and then save them all from here.
-            await Shell.Current.GoToAsync($"task",
-                new ShellNavigationQueryParameters(){
-                    {TaskDetailPageModel.ProjectQueryKey, _project}
+            await Shell.Current.GoToAsync("task",
+                new ShellNavigationQueryParameters
+                {
+                    { TaskDetailPageModel.ProjectQueryKey, _project }
                 });
         }
 
@@ -232,8 +258,10 @@ namespace MauiSample.PageModels
         }
 
         [RelayCommand]
-        private Task NavigateToTask(ProjectTask task) =>
-            Shell.Current.GoToAsync($"task?id={task.ID}");
+        private Task NavigateToTask(ProjectTask task)
+        {
+            return Shell.Current.GoToAsync($"task?id={task.ID}");
+        }
 
         [RelayCommand]
         private async Task ToggleTag(Tag tag)
@@ -252,7 +280,7 @@ namespace MauiSample.PageModels
                 }
             }
 
-            AllTags = new(AllTags);
+            AllTags = new List<Tag>(AllTags);
         }
 
         [RelayCommand]
@@ -265,7 +293,7 @@ namespace MauiSample.PageModels
                 Tasks.Remove(task);
             }
 
-            Tasks = new(Tasks);
+            Tasks = new List<ProjectTask>(Tasks);
             OnPropertyChanged(nameof(HasCompletedTasks));
             await AppShell.DisplayToastAsync("All cleaned up!");
         }

@@ -1,25 +1,22 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiSample.Data;
 using MauiSample.Models;
-using MauiSample.Services;
-using System.Collections.ObjectModel;
 
 namespace MauiSample.PageModels
 {
     public partial class ManageMetaPageModel : ObservableObject
     {
         private readonly CategoryRepository _categoryRepository;
-        private readonly TagRepository _tagRepository;
         private readonly SeedDataService _seedDataService;
+        private readonly TagRepository _tagRepository;
 
-        [ObservableProperty]
-        private ObservableCollection<Category> _categories = [];
+        [ObservableProperty] private ObservableCollection<Category> _categories = [];
 
-        [ObservableProperty]
-        private ObservableCollection<Tag> _tags = [];
+        [ObservableProperty] private ObservableCollection<Tag> _tags = [];
 
-        public ManageMetaPageModel(CategoryRepository categoryRepository, TagRepository tagRepository, SeedDataService seedDataService)
+        public ManageMetaPageModel(CategoryRepository categoryRepository, TagRepository tagRepository,
+            SeedDataService seedDataService)
         {
             _categoryRepository = categoryRepository;
             _tagRepository = tagRepository;
@@ -36,7 +33,9 @@ namespace MauiSample.PageModels
 
         [RelayCommand]
         private Task Appearing()
-            => LoadData();
+        {
+            return LoadData();
+        }
 
         [RelayCommand]
         private async Task SaveCategories()

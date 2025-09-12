@@ -17,7 +17,7 @@ namespace MauiSample
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if IOS || MACCATALYST
-    				handlers.AddHandler<Microsoft.Maui.Controls.CollectionView, Microsoft.Maui.Controls.Handlers.Items2.CollectionViewHandler2>();
+                    handlers.AddHandler<Microsoft.Maui.Controls.CollectionView, Microsoft.Maui.Controls.Handlers.Items2.CollectionViewHandler2>();
 #endif
                 })
                 .ConfigureFonts(fonts =>
@@ -37,7 +37,7 @@ namespace MauiSample
 
 #if DEBUG
             builder.Logging.AddDebug();
-    		builder.Services.AddLogging(configure => configure.AddDebug());
+            builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
 
             builder.Services.AddSingleton<ProjectRepository>();

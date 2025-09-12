@@ -1,5 +1,5 @@
-using MauiSample.Models;
 using System.Text.Json.Serialization;
+using MauiSample.Models;
 
 [JsonSerializable(typeof(Project))]
 [JsonSerializable(typeof(ProjectTask))]

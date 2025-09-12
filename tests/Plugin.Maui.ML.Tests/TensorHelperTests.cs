@@ -10,8 +10,8 @@ public class TensorHelperTests
     public void CreateTensor_FromFloatArray_CreatesTensorCorrectly()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var dimensions = new int[] { 2, 2 };
+        var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+        var dimensions = new[] { 2, 2 };
 
         // Act
         var tensor = TensorHelper.CreateTensor(data, dimensions);
@@ -26,14 +26,14 @@ public class TensorHelperTests
     public void CreateTensor_From2DArray_CreatesTensorCorrectly()
     {
         // Arrange
-        var data = new float[,] { { 1.0f, 2.0f }, { 3.0f, 4.0f } };
+        var data = new[,] { { 1.0f, 2.0f }, { 3.0f, 4.0f } };
 
         // Act
         var tensor = TensorHelper.CreateTensor(data);
 
         // Assert
         Assert.NotNull(tensor);
-        Assert.Equal(new int[] { 2, 2 }, tensor.Dimensions.ToArray());
+        Assert.Equal(new[] { 2, 2 }, tensor.Dimensions.ToArray());
         Assert.Equal(4, tensor.Length);
     }
 
@@ -41,8 +41,8 @@ public class TensorHelperTests
     public void ToArray_ConvertsTensorToArray()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 2, 2 });
+        var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
 
         // Act
         var result = TensorHelper.ToArray(tensor);
@@ -55,8 +55,8 @@ public class TensorHelperTests
     public void GetShapeString_ReturnsCorrectFormat()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 2, 2 });
+        var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
 
         // Act
         var shapeString = TensorHelper.GetShapeString(tensor);
@@ -69,9 +69,9 @@ public class TensorHelperTests
     public void Reshape_WithValidDimensions_ReshapesTensor()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 2, 2 });
-        var newDimensions = new int[] { 4, 1 };
+        var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var newDimensions = new[] { 4, 1 };
 
         // Act
         var reshapedTensor = TensorHelper.Reshape(tensor, newDimensions);
@@ -85,9 +85,9 @@ public class TensorHelperTests
     public void Reshape_WithInvalidDimensions_ThrowsException()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 2, 2 });
-        var newDimensions = new int[] { 2, 3 }; // Total size mismatch
+        var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var newDimensions = new[] { 2, 3 }; // Total size mismatch
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => TensorHelper.Reshape(tensor, newDimensions));
@@ -97,8 +97,8 @@ public class TensorHelperTests
     public void Normalize_NormalizesToZeroOneRange()
     {
         // Arrange
-        var data = new float[] { 0.0f, 10.0f, 20.0f, 30.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 4 });
+        var data = new[] { 0.0f, 10.0f, 20.0f, 30.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 4 });
 
         // Act
         var normalizedTensor = TensorHelper.Normalize(tensor);
@@ -114,8 +114,8 @@ public class TensorHelperTests
     public void Normalize_WithSameValues_ReturnsOriginalTensor()
     {
         // Arrange
-        var data = new float[] { 5.0f, 5.0f, 5.0f, 5.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 4 });
+        var data = new[] { 5.0f, 5.0f, 5.0f, 5.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 4 });
 
         // Act
         var normalizedTensor = TensorHelper.Normalize(tensor);
@@ -130,8 +130,8 @@ public class TensorHelperTests
     public void Softmax_AppliesSoftmaxCorrectly()
     {
         // Arrange
-        var data = new float[] { 1.0f, 2.0f, 3.0f };
-        var tensor = new DenseTensor<float>(data, new int[] { 3 });
+        var data = new[] { 1.0f, 2.0f, 3.0f };
+        var tensor = new DenseTensor<float>(data, new[] { 3 });
 
         // Act
         var softmaxTensor = TensorHelper.Softmax(tensor);
@@ -141,10 +141,10 @@ public class TensorHelperTests
         // Softmax values should sum to 1
         var sum = softmaxData.Sum();
         Assert.Equal(1.0f, sum, 0.00001f);
-        
+
         // All values should be positive
         Assert.True(softmaxData.All(x => x > 0.0f));
-        
+
         // Higher input values should result in higher softmax values
         Assert.True(softmaxData[2] > softmaxData[1]);
         Assert.True(softmaxData[1] > softmaxData[0]);

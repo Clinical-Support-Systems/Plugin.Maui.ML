@@ -1,12 +1,12 @@
 namespace MauiSample.Services
 {
     /// <summary>
-    /// Error Handler Service.
+    ///     Error Handler Service.
     /// </summary>
     public interface IErrorHandler
     {
         /// <summary>
-        /// Handle error in UI.
+        ///     Handle error in UI.
         /// </summary>
         /// <param name="ex">Exception being thrown.</param>
         void HandleError(Exception ex);

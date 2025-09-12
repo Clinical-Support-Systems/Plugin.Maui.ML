@@ -1,6 +1,7 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
+
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:f="clr-namespace:Fonts"
     xmlns:pullToRefresh="clr-namespace:Syncfusion.Maui.Toolkit.PullToRefresh;assembly=Syncfusion.Maui.Toolkit"
@@ -31,7 +32,7 @@
              Default="20">
         <OnIdiom.Desktop>32</OnIdiom.Desktop>
     </OnIdiom>
-    
+
     <OnIdiom x:Key="IconSizeSmall"
              x:TypeArguments="x:Double"
              Default="12">
@@ -75,33 +76,33 @@
                      Size="{StaticResource IconSize}" />
 
     <FontImageSource x:Key="IconAdd"
-                Glyph="{x:Static f:FluentUI.add_32_regular}"
-                FontFamily="{x:Static f:FluentUI.FontFamily}"
-                Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource LightOnDarkBackground}}"
-                Size="{StaticResource IconSize}" />
+                     Glyph="{x:Static f:FluentUI.add_32_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
 
     <FontImageSource x:Key="IconDelete"
-                Glyph="{x:Static f:FluentUI.delete_32_regular}"
-                FontFamily="{x:Static f:FluentUI.FontFamily}"
-                Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                Size="{StaticResource IconSize}" />
+                     Glyph="{x:Static f:FluentUI.delete_32_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource IconSize}" />
 
-        <FontImageSource x:Key="IconClean"
-                Glyph="{x:Static f:FluentUI.broom_32_regular}"
-                FontFamily="{x:Static f:FluentUI.FontFamily}"
-                Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                Size="{StaticResource size240}" />
+    <FontImageSource x:Key="IconClean"
+                     Glyph="{x:Static f:FluentUI.broom_32_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource size240}" />
 
-        <FontImageSource x:Key="IconLight"
-                Glyph="{x:Static f:FluentUI.weather_sunny_28_regular}"
-                FontFamily="{x:Static f:FluentUI.FontFamily}"
-                Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                Size="{StaticResource size240}" />
-        <FontImageSource x:Key="IconDark"
-                Glyph="{x:Static f:FluentUI.weather_moon_28_regular}"
-                FontFamily="{x:Static f:FluentUI.FontFamily}"
-                Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
-                Size="{StaticResource size240}" />
+    <FontImageSource x:Key="IconLight"
+                     Glyph="{x:Static f:FluentUI.weather_sunny_28_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource size240}" />
+    <FontImageSource x:Key="IconDark"
+                     Glyph="{x:Static f:FluentUI.weather_moon_28_regular}"
+                     FontFamily="{x:Static f:FluentUI.FontFamily}"
+                     Color="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"
+                     Size="{StaticResource size240}" />
 
     <Style TargetType="Label">
         <Setter Property="TextColor"
@@ -251,39 +252,45 @@
     </Style>
 
     <Style TargetType="Border">
-        <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
-        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}"/>
-        <Setter Property="StrokeThickness" Value="0"/>
-        <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}"/>
+        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}" />
     </Style>
 
     <Style TargetType="Border" x:Key="CardStyle">
-        <Setter Property="StrokeShape" Value="RoundRectangle 20"/>
-        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}"/>
-        <Setter Property="StrokeThickness" Value="0"/>
-        <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}"/>
+        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource LightSecondaryBackground},Dark={StaticResource DarkSecondaryBackground}}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="Padding" Value="{OnIdiom 15, Desktop=20}" />
     </Style>
 
-    <sf:LabelStyle x:Key="lightThemeLabelStyle" TextColor="{StaticResource DarkOnLightBackground}" FontSize="{OnIdiom 18, Desktop=24}"/> 
-    <sf:LabelStyle x:Key="darkThemeLabelStyle" TextColor="{StaticResource LightOnDarkBackground}" FontSize="{OnIdiom 18, Desktop=24}"/>
-    <Style TargetType="sf:SfTextInputLayout"> 
-        <Setter Property="ContainerType" Value="Outlined"/> 
-        <Setter Property="ContainerBackground" Value="Transparent"/> 
-        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}"/> 
-        <Setter Property="HintLabelStyle" Value="{AppThemeBinding Light={StaticResource lightThemeLabelStyle}, Dark={StaticResource darkThemeLabelStyle}}"/> 
+    <sf:LabelStyle x:Key="lightThemeLabelStyle" TextColor="{StaticResource DarkOnLightBackground}"
+                   FontSize="{OnIdiom 18, Desktop=24}" />
+    <sf:LabelStyle x:Key="darkThemeLabelStyle" TextColor="{StaticResource LightOnDarkBackground}"
+                   FontSize="{OnIdiom 18, Desktop=24}" />
+    <Style TargetType="sf:SfTextInputLayout">
+        <Setter Property="ContainerType" Value="Outlined" />
+        <Setter Property="ContainerBackground" Value="Transparent" />
+        <Setter Property="Stroke"
+                Value="{AppThemeBinding Light={StaticResource DarkOnLightBackground}, Dark={StaticResource LightOnDarkBackground}}" />
+        <Setter Property="HintLabelStyle"
+                Value="{AppThemeBinding Light={StaticResource lightThemeLabelStyle}, Dark={StaticResource darkThemeLabelStyle}}" />
     </Style>
-    
+
 
     <Style TargetType="BoxView" x:Key="ShimmerCustomViewStyle">
         <Setter Property="BackgroundColor" Value="Gray" />
         <Setter Property="HorizontalOptions" Value="FillAndExpand" />
         <Setter Property="VerticalOptions" Value="CenterAndExpand" />
     </Style>
-  
+
     <Style TargetType="pullToRefresh:SfPullToRefresh">
-        <Setter Property="TransitionMode" Value="SlideOnTop"/>
-        <Setter Property="PullingThreshold" Value="100"/>
-        <Setter Property="ProgressColor" Value="{StaticResource Primary}"/>
+        <Setter Property="TransitionMode" Value="SlideOnTop" />
+        <Setter Property="PullingThreshold" Value="100" />
+        <Setter Property="ProgressColor" Value="{StaticResource Primary}" />
     </Style>
 
 </ResourceDictionary>

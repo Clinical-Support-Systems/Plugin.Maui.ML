@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Plugin.Maui.ML;
+using Plugin.Maui.ML.Utilities;
 
 // Create a host with dependency injection
 var builder = Host.CreateApplicationBuilder(args);
@@ -29,9 +30,9 @@ try
 {
     // Demo: Create sample tensors for inference
     // This would normally come from your actual data (images, text, etc.)
-    var inputData = new float[] { 1.0f, 2.0f, 3.0f, 4.0f };
-    var inputTensor = new DenseTensor<float>(inputData, new int[] { 1, 4 });
-    
+    var inputData = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
+    var inputTensor = new DenseTensor<float>(inputData, new[] { 1, 4 });
+
     var inputs = new Dictionary<string, Tensor<float>>
     {
         ["input"] = inputTensor
@@ -50,22 +51,22 @@ try
     logger.LogInformation("2. Call await mlService.LoadModelAsync(\"your-model.onnx\")");
     logger.LogInformation("3. Create input tensors matching your model's requirements");
     logger.LogInformation("4. Call await mlService.RunInferenceAsync(inputs)");
-    
+
     // Demonstrate utility functions
     logger.LogInformation("Demonstrating tensor utilities:");
-    
+
     // Show tensor shape
-    var shapeString = Plugin.Maui.ML.Utilities.TensorHelper.GetShapeString(inputTensor);
+    var shapeString = TensorHelper.GetShapeString(inputTensor);
     logger.LogInformation("Tensor shape: {shape}", shapeString);
-    
+
     // Show normalization
-    var normalizedTensor = Plugin.Maui.ML.Utilities.TensorHelper.Normalize(inputTensor);
-    var normalizedData = Plugin.Maui.ML.Utilities.TensorHelper.ToArray(normalizedTensor);
+    var normalizedTensor = TensorHelper.Normalize(inputTensor);
+    var normalizedData = TensorHelper.ToArray(normalizedTensor);
     logger.LogInformation("Normalized data: [{data}]", string.Join(", ", normalizedData.Select(x => x.ToString("F3"))));
-    
+
     // Show softmax
-    var softmaxTensor = Plugin.Maui.ML.Utilities.TensorHelper.Softmax(inputTensor);
-    var softmaxData = Plugin.Maui.ML.Utilities.TensorHelper.ToArray(softmaxTensor);
+    var softmaxTensor = TensorHelper.Softmax(inputTensor);
+    var softmaxData = TensorHelper.ToArray(softmaxTensor);
     logger.LogInformation("Softmax data: [{data}]", string.Join(", ", softmaxData.Select(x => x.ToString("F3"))));
 
     logger.LogInformation("Sample completed successfully!");
@@ -81,6 +82,6 @@ finally
     {
         disposable.Dispose();
     }
-    
+
     logger.LogInformation("Plugin.Maui.ML Console Sample Ended");
 }

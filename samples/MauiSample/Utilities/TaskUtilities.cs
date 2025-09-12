@@ -1,14 +1,12 @@
-using MauiSample.Services;
-
 namespace MauiSample.Utilities
 {
     /// <summary>
-    /// Task Utilities.
+    ///     Task Utilities.
     /// </summary>
     public static class TaskUtilities
     {
         /// <summary>
-        /// Fire and Forget Safe Async.
+        ///     Fire and Forget Safe Async.
         /// </summary>
         /// <param name="task">Task to Fire and Forget.</param>
         /// <param name="handler">Error Handler.</param>

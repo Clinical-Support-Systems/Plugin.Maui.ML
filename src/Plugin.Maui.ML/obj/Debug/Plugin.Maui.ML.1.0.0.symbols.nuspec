@@ -9,7 +9,7 @@
     <projectUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</projectUrl>
     <description>A .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS support for ML model files</description>
     <tags>maui ml onnx inference plugin</tags>
-    <repository type="git" url="https://github.com/Clinical-Support-Systems/Plugin.Maui.ML" commit="a3bb614ff63456715a30c548a77217b41775ab9c" />
+    <repository type="git" url="https://github.com/Clinical-Support-Systems/Plugin.Maui.ML" commit="c827ce8cef5fdaa625587f965307b7db406fa78b" />
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="8.0.0" exclude="Build,Analyzers" />

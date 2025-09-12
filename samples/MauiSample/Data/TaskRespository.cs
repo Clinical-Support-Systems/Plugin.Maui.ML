@@ -5,15 +5,15 @@ using Microsoft.Extensions.Logging;
 namespace MauiSample.Data
 {
     /// <summary>
-    /// Repository class for managing tasks in the database.
+    ///     Repository class for managing tasks in the database.
     /// </summary>
     public class TaskRepository
     {
-        private bool _hasBeenInitialized = false;
         private readonly ILogger _logger;
+        private bool _hasBeenInitialized;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TaskRepository"/> class.
+        ///     Initializes a new instance of the <see cref="TaskRepository" /> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
         public TaskRepository(ILogger<TaskRepository> logger)
@@ -22,7 +22,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Initializes the database connection and creates the Task table if it does not exist.
+        ///     Initializes the database connection and creates the Task table if it does not exist.
         /// </summary>
         private async Task Init()
         {
@@ -54,9 +54,9 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a list of all tasks from the database.
+        ///     Retrieves a list of all tasks from the database.
         /// </summary>
-        /// <returns>A list of <see cref="ProjectTask"/> objects.</returns>
+        /// <returns>A list of <see cref="ProjectTask" /> objects.</returns>
         public async Task<List<ProjectTask>> ListAsync()
         {
             await Init();
@@ -83,10 +83,10 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a list of tasks associated with a specific project.
+        ///     Retrieves a list of tasks associated with a specific project.
         /// </summary>
         /// <param name="projectId">The ID of the project.</param>
-        /// <returns>A list of <see cref="ProjectTask"/> objects.</returns>
+        /// <returns>A list of <see cref="ProjectTask" /> objects.</returns>
         public async Task<List<ProjectTask>> ListAsync(int projectId)
         {
             await Init();
@@ -114,10 +114,10 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a specific task by its ID.
+        ///     Retrieves a specific task by its ID.
         /// </summary>
         /// <param name="id">The ID of the task.</param>
-        /// <returns>A <see cref="ProjectTask"/> object if found; otherwise, null.</returns>
+        /// <returns>A <see cref="ProjectTask" /> object if found; otherwise, null.</returns>
         public async Task<ProjectTask?> GetAsync(int id)
         {
             await Init();
@@ -144,7 +144,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Saves a task to the database. If the task ID is 0, a new task is created; otherwise, the existing task is updated.
+        ///     Saves a task to the database. If the task ID is 0, a new task is created; otherwise, the existing task is updated.
         /// </summary>
         /// <param name="item">The task to save.</param>
         /// <returns>The ID of the saved task.</returns>
@@ -182,7 +182,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Deletes a task from the database.
+        ///     Deletes a task from the database.
         /// </summary>
         /// <param name="item">The task to delete.</param>
         /// <returns>The number of rows affected.</returns>
@@ -200,7 +200,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Drops the Task table from the database.
+        ///     Drops the Task table from the database.
         /// </summary>
         public async Task DropTableAsync()
         {

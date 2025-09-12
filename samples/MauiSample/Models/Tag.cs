@@ -1,5 +1,5 @@
-using CommunityToolkit.Maui.Core.Extensions;
 using System.Text.Json.Serialization;
+using CommunityToolkit.Maui.Core.Extensions;
 
 namespace MauiSample.Models
 {
@@ -9,43 +9,14 @@ namespace MauiSample.Models
         public string Title { get; set; } = string.Empty;
         public string Color { get; set; } = "#FF0000";
 
-        [JsonIgnore]
-        public Brush ColorBrush
-        {
-            get
-            {
-                return new SolidColorBrush(Microsoft.Maui.Graphics.Color.FromArgb(Color));
-            }
-        }
+        [JsonIgnore] public Brush ColorBrush => new SolidColorBrush(Microsoft.Maui.Graphics.Color.FromArgb(Color));
 
-        [JsonIgnore]
-        public Color DisplayColor
-        {
-            get
-            {
-                return Microsoft.Maui.Graphics.Color.FromArgb(Color);
-            }
-        }
+        [JsonIgnore] public Color DisplayColor => Microsoft.Maui.Graphics.Color.FromArgb(Color);
 
-        [JsonIgnore]
-        public Color DisplayDarkColor
-        {
-            get
-            {
-                return DisplayColor.WithBlackKey(0.8);
-            }
-        }
+        [JsonIgnore] public Color DisplayDarkColor => DisplayColor.WithBlackKey(0.8);
 
-        [JsonIgnore]
-        public Color DisplayLightColor
-        {
-            get
-            {
-                return DisplayColor.WithBlackKey(0.2);
-            }
-        }
+        [JsonIgnore] public Color DisplayLightColor => DisplayColor.WithBlackKey(0.2);
 
-        [JsonIgnore]
-        public bool IsSelected { get; set; }
+        [JsonIgnore] public bool IsSelected { get; set; }
     }
 }

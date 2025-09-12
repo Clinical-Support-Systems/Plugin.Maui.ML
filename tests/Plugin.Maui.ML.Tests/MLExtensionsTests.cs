@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Plugin.Maui.ML;
 using Xunit;
 
 namespace Plugin.Maui.ML.Tests;

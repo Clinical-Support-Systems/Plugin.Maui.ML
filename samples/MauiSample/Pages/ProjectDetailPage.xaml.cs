@@ -1,5 +1,3 @@
-using MauiSample.Models;
-
 namespace MauiSample.Pages
 {
     public partial class ProjectDetailPage : ContentPage

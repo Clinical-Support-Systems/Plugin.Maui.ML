@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
+
 <Border xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
         xmlns:chart="clr-namespace:Syncfusion.Maui.Toolkit.Charts;assembly=Syncfusion.Maui.Toolkit"
-        xmlns:controls="clr-namespace:MauiSample.Pages.Controls" 
+        xmlns:controls="clr-namespace:MauiSample.Pages.Controls"
         xmlns:shimmer="clr-namespace:Syncfusion.Maui.Toolkit.Shimmer;assembly=Syncfusion.Maui.Toolkit"
         xmlns:pageModels="clr-namespace:MauiSample.PageModels"
         x:Class="MauiSample.Pages.Controls.CategoryChart"
@@ -13,13 +14,13 @@
     <shimmer:SfShimmer
         BackgroundColor="Transparent"
         VerticalOptions="FillAndExpand"
-        IsActive ="{Binding IsBusy}">
+        IsActive="{Binding IsBusy}">
         <shimmer:SfShimmer.CustomView>
             <Grid>
-                <BoxView 
+                <BoxView
                     CornerRadius="12"
                     VerticalOptions="FillAndExpand"
-                    Style="{StaticResource ShimmerCustomViewStyle}"/>
+                    Style="{StaticResource ShimmerCustomViewStyle}" />
             </Grid>
         </shimmer:SfShimmer.CustomView>
         <shimmer:SfShimmer.Content>
@@ -27,24 +28,24 @@
                 <chart:SfCircularChart.Legend>
                     <controls:LegendExt Placement="Right">
                         <chart:ChartLegend.LabelStyle>
-                            <chart:ChartLegendLabelStyle 
+                            <chart:ChartLegendLabelStyle
                                 TextColor="{AppThemeBinding 
                                 Light={StaticResource DarkOnLightBackground},
-                                Dark={StaticResource LightOnDarkBackground}}" 
-                                Margin="5" 
+                                Dark={StaticResource LightOnDarkBackground}}"
+                                Margin="5"
                                 FontSize="18" />
                         </chart:ChartLegend.LabelStyle>
                     </controls:LegendExt>
                 </chart:SfCircularChart.Legend>
-                <chart:RadialBarSeries 
+                <chart:RadialBarSeries
                     ItemsSource="{Binding TodoCategoryData}"
                     PaletteBrushes="{Binding TodoCategoryColors}"
                     XBindingPath="Title"
-                    YBindingPath="Count" 
+                    YBindingPath="Count"
                     ShowDataLabels="True"
-                    EnableTooltip="True" 
+                    EnableTooltip="True"
                     TrackFill="{AppThemeBinding Light={StaticResource LightBackground}, Dark={StaticResource DarkBackground}}"
-                    CapStyle = "BothCurve"/>
+                    CapStyle="BothCurve" />
             </chart:SfCircularChart>
         </shimmer:SfShimmer.Content>
     </shimmer:SfShimmer>

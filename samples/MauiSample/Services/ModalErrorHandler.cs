@@ -1,14 +1,14 @@
 namespace MauiSample.Services
 {
     /// <summary>
-    /// Modal Error Handler.
+    ///     Modal Error Handler.
     /// </summary>
     public class ModalErrorHandler : IErrorHandler
     {
-        SemaphoreSlim _semaphore = new(1, 1);
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
 
         /// <summary>
-        /// Handle error in UI.
+        ///     Handle error in UI.
         /// </summary>
         /// <param name="ex">Exception.</param>
         public void HandleError(Exception ex)
@@ -16,7 +16,7 @@ namespace MauiSample.Services
             DisplayAlert(ex).FireAndForgetSafeAsync();
         }
 
-        async Task DisplayAlert(Exception ex)
+        private async Task DisplayAlert(Exception ex)
         {
             try
             {

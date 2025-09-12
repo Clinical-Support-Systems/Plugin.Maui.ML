@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+
 <Shell
     x:Class="MauiSample.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -28,13 +29,14 @@
 
     <Shell.FlyoutFooter>
         <Grid Padding="15">
-            <sf:SfSegmentedControl x:Name="ThemeSegmentedControl" 
-                VerticalOptions="Center" HorizontalOptions="Center" SelectionChanged="SfSegmentedControl_SelectionChanged"
-                SegmentWidth="40" SegmentHeight="40">
+            <sf:SfSegmentedControl x:Name="ThemeSegmentedControl"
+                                   VerticalOptions="Center" HorizontalOptions="Center"
+                                   SelectionChanged="SfSegmentedControl_SelectionChanged"
+                                   SegmentWidth="40" SegmentHeight="40">
                 <sf:SfSegmentedControl.ItemsSource>
                     <x:Array Type="{x:Type sf:SfSegmentItem}">
-                        <sf:SfSegmentItem ImageSource="{StaticResource IconLight}"/>
-                        <sf:SfSegmentItem ImageSource="{StaticResource IconDark}"/>
+                        <sf:SfSegmentItem ImageSource="{StaticResource IconLight}" />
+                        <sf:SfSegmentItem ImageSource="{StaticResource IconDark}" />
                     </x:Array>
                 </sf:SfSegmentedControl.ItemsSource>
             </sf:SfSegmentedControl>

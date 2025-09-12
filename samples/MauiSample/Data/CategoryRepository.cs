@@ -5,15 +5,15 @@ using Microsoft.Extensions.Logging;
 namespace MauiSample.Data
 {
     /// <summary>
-    /// Repository class for managing categories in the database.
+    ///     Repository class for managing categories in the database.
     /// </summary>
     public class CategoryRepository
     {
-        private bool _hasBeenInitialized = false;
         private readonly ILogger _logger;
+        private bool _hasBeenInitialized;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CategoryRepository"/> class.
+        ///     Initializes a new instance of the <see cref="CategoryRepository" /> class.
         /// </summary>
         /// <param name="logger">The logger instance.</param>
         public CategoryRepository(ILogger<CategoryRepository> logger)
@@ -22,7 +22,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Initializes the database connection and creates the Category table if it does not exist.
+        ///     Initializes the database connection and creates the Category table if it does not exist.
         /// </summary>
         private async Task Init()
         {
@@ -53,9 +53,9 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a list of all categories from the database.
+        ///     Retrieves a list of all categories from the database.
         /// </summary>
-        /// <returns>A list of <see cref="Category"/> objects.</returns>
+        /// <returns>A list of <see cref="Category" /> objects.</returns>
         public async Task<List<Category>> ListAsync()
         {
             await Init();
@@ -81,10 +81,10 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Retrieves a specific category by its ID.
+        ///     Retrieves a specific category by its ID.
         /// </summary>
         /// <param name="id">The ID of the category.</param>
-        /// <returns>A <see cref="Category"/> object if found; otherwise, null.</returns>
+        /// <returns>A <see cref="Category" /> object if found; otherwise, null.</returns>
         public async Task<Category?> GetAsync(int id)
         {
             await Init();
@@ -110,7 +110,8 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Saves a category to the database. If the category ID is 0, a new category is created; otherwise, the existing category is updated.
+        ///     Saves a category to the database. If the category ID is 0, a new category is created; otherwise, the existing
+        ///     category is updated.
         /// </summary>
         /// <param name="item">The category to save.</param>
         /// <returns>The ID of the saved category.</returns>
@@ -149,7 +150,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Deletes a category from the database.
+        ///     Deletes a category from the database.
         /// </summary>
         /// <param name="item">The category to delete.</param>
         /// <returns>The number of rows affected.</returns>
@@ -167,7 +168,7 @@ namespace MauiSample.Data
         }
 
         /// <summary>
-        /// Drops the Category table from the database.
+        ///     Drops the Category table from the database.
         /// </summary>
         public async Task DropTableAsync()
         {

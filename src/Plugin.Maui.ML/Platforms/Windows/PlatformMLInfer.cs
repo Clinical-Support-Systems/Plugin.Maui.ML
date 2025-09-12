@@ -1,23 +1,22 @@
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
+using System.Runtime.InteropServices;
 
 namespace Plugin.Maui.ML.Platforms.Windows;
 
 /// <summary>
-/// Windows-specific ML inference implementation
+///     Windows-specific ML inference implementation
 /// </summary>
 public class PlatformMLInfer : OnnxRuntimeInfer
 {
     /// <summary>
-    /// Initializes a new instance of the PlatformMLInfer class for Windows
+    ///     Initializes a new instance of the PlatformMLInfer class for Windows
     /// </summary>
-    public PlatformMLInfer() : base()
+    public PlatformMLInfer()
     {
         // Windows-specific initialization can be added here
     }
 
     /// <summary>
-    /// Load model from Windows app package
+    ///     Load model from Windows app package
     /// </summary>
     /// <param name="packagePath">Relative path within the app package</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -35,18 +34,22 @@ public class PlatformMLInfer : OnnxRuntimeInfer
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Failed to load model from Windows app package '{packagePath}': {ex.Message}", ex);
+            throw new InvalidOperationException(
+                $"Failed to load model from Windows app package '{packagePath}': {ex.Message}", ex);
         }
     }
 
     /// <summary>
-    /// Get available execution providers for Windows
+    ///     Get available execution providers for Windows
     /// </summary>
     /// <returns>List of available execution provider names</returns>
     public static List<string> GetAvailableExecutionProviders()
     {
-        var providers = new List<string> { "CPUExecutionProvider" };
-        
+        var providers = new List<string>
+        {
+            "CPUExecutionProvider"
+        };
+
         // DirectML is available on Windows 10 version 1903+ with compatible GPU
         var version = Environment.OSVersion.Version;
         if (version.Major >= 10)
@@ -58,7 +61,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     }
 
     /// <summary>
-    /// Check if DirectX 12 is available
+    ///     Check if DirectX 12 is available
     /// </summary>
     /// <returns>True if DirectX 12 is likely available</returns>
     public static bool IsDirectX12Available()
@@ -76,7 +79,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     }
 
     /// <summary>
-    /// Get system information for ML inference optimization
+    ///     Get system information for ML inference optimization
     /// </summary>
     /// <returns>Dictionary containing system information</returns>
     public static Dictionary<string, object> GetSystemInfo()
@@ -88,7 +91,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
             ["Is64BitProcess"] = Environment.Is64BitProcess,
             ["Is64BitOperatingSystem"] = Environment.Is64BitOperatingSystem,
             ["WorkingSet"] = Environment.WorkingSet,
-            ["Architecture"] = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString()
+            ["Architecture"] = RuntimeInformation.ProcessArchitecture.ToString()
         };
 
         return info;

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using Font = Microsoft.Maui.Font;
+using SelectionChangedEventArgs = Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs;
 
 namespace MauiSample
 {
@@ -12,9 +13,10 @@ namespace MauiSample
             var currentTheme = Application.Current!.RequestedTheme;
             ThemeSegmentedControl.SelectedIndex = currentTheme == AppTheme.Light ? 0 : 1;
         }
+
         public static async Task DisplaySnackbarAsync(string message)
         {
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            var cancellationTokenSource = new CancellationTokenSource();
 
             var snackbarOptions = new SnackbarOptions
             {
@@ -43,7 +45,7 @@ namespace MauiSample
             await toast.Show(cts.Token);
         }
 
-        private void SfSegmentedControl_SelectionChanged(object sender, Syncfusion.Maui.Toolkit.SegmentedControl.SelectionChangedEventArgs e)
+        private void SfSegmentedControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             Application.Current!.UserAppTheme = e.NewIndex == 0 ? AppTheme.Light : AppTheme.Dark;
         }

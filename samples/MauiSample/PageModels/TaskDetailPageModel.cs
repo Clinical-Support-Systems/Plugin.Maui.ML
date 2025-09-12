@@ -1,44 +1,48 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiSample.Data;
 using MauiSample.Models;
-using MauiSample.Services;
 
 namespace MauiSample.PageModels
 {
     public partial class TaskDetailPageModel : ObservableObject, IQueryAttributable
     {
         public const string ProjectQueryKey = "project";
-        private ProjectTask? _task;
-        private bool _canDelete;
+        private readonly ModalErrorHandler _errorHandler;
         private readonly ProjectRepository _projectRepository;
         private readonly TaskRepository _taskRepository;
-        private readonly ModalErrorHandler _errorHandler;
+        private bool _canDelete;
 
-        [ObservableProperty]
-        private string _title = string.Empty;
-
-        [ObservableProperty]
-        private bool _isCompleted;
-
-        [ObservableProperty]
-        private List<Project> _projects = [];
-
-        [ObservableProperty]
-        private Project? _project;
-
-        [ObservableProperty]
-        private int _selectedProjectIndex = -1;
+        [ObservableProperty] private bool _isCompleted;
 
 
-        [ObservableProperty]
-        private bool _isExistingProject;
+        [ObservableProperty] private bool _isExistingProject;
 
-        public TaskDetailPageModel(ProjectRepository projectRepository, TaskRepository taskRepository, ModalErrorHandler errorHandler)
+        [ObservableProperty] private Project? _project;
+
+        [ObservableProperty] private List<Project> _projects = [];
+
+        [ObservableProperty] private int _selectedProjectIndex = -1;
+
+        private ProjectTask? _task;
+
+        [ObservableProperty] private string _title = string.Empty;
+
+        public TaskDetailPageModel(ProjectRepository projectRepository, TaskRepository taskRepository,
+            ModalErrorHandler errorHandler)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
             _errorHandler = errorHandler;
+        }
+
+        public bool CanDelete
+        {
+            get => _canDelete;
+            set
+            {
+                _canDelete = value;
+                DeleteCommand.NotifyCanExecuteChanged();
+            }
         }
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -51,7 +55,7 @@ namespace MauiSample.PageModels
             if (query.TryGetValue(ProjectQueryKey, out var project))
                 Project = (Project)project;
 
-            int taskId = 0;
+            var taskId = 0;
 
             if (query.ContainsKey("id"))
             {
@@ -101,20 +105,10 @@ namespace MauiSample.PageModels
             }
             else
             {
-                _task = new ProjectTask()
+                _task = new ProjectTask
                 {
                     ProjectID = Project?.ID ?? 0
                 };
-            }
-        }
-
-        public bool CanDelete
-        {
-            get => _canDelete;
-            set
-            {
-                _canDelete = value;
-                DeleteCommand.NotifyCanExecuteChanged();
             }
         }
 
@@ -131,7 +125,7 @@ namespace MauiSample.PageModels
 
             _task.Title = Title;
 
-            int projectId = Project?.ID ?? 0;
+            var projectId = Project?.ID ?? 0;
 
             if (Projects.Count > SelectedProjectIndex && SelectedProjectIndex >= 0)
                 _task.ProjectID = projectId = Projects[SelectedProjectIndex].ID;

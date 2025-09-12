@@ -1,5 +1,3 @@
-using System;
-
 namespace MauiSample.Models
 {
     public class IconData
