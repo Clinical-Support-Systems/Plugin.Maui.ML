@@ -66,13 +66,16 @@
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button
                     Grid.Column="0"
+                    BackgroundColor="{StaticResource PrimaryDark}"
                     Command="{Binding ExtractMedicalEntitiesCommand}"
-                    Text="Extract Entities" />
+                    Text="Extract Entities"
+                    TextColor="{StaticResource PrimaryDarkText}" />
                 <Button
                     Grid.Column="1"
-                    BackgroundColor="LightGray"
+                    BackgroundColor="{StaticResource Secondary}"
                     Command="{Binding TestMedicalSampleCommand}"
-                    Text="Test Sample" />
+                    Text="Test Sample"
+                    TextColor="{StaticResource SecondaryDarkText}" />
             </Grid>
 
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />

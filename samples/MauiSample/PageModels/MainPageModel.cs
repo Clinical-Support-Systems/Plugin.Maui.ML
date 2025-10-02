@@ -32,7 +32,7 @@ namespace MauiSample.PageModels
         [ObservableProperty] private string _medicalStatus = "Not initialized";
 
         // Medical NLP properties
-        [ObservableProperty] private string _medicalText = "Patient has type 2 diabetes mellitus and hypertension. Currently taking metformin 1000mg twice daily and lisinopril 10mg once daily.";
+        [ObservableProperty] private string _medicalText = "";
         [ObservableProperty] private List<Project> _projects = [];
         [ObservableProperty] private string _question = string.Empty;
         [ObservableProperty] private List<ProjectTask> _tasks = [];
@@ -255,7 +255,7 @@ namespace MauiSample.PageModels
         private async Task TestMedicalSample()
         {
             MedicalText =
-                "Patient diagnosed with acute myocardial infarction. Prescribed aspirin 325mg, metoprolol 50mg, and atorvastatin 40mg. Scheduled for cardiac catheterization procedure.";
+                "62-year-old male presented to ER with severe chest pain radiating to left arm. Diagnosed with acute myocardial infarction. Administered aspirin 325mg, morphine 5mg IV, and initiated heparin infusion. Emergency cardiac catheterization performed.";
             await ExtractMedicalEntities();
         }
 

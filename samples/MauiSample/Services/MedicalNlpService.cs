@@ -37,6 +37,11 @@ namespace MauiSample.Services
         private string _maskToken = DefaultMask;
         private string _defaultPooling = "mean";
 
+        private int _clsId;
+        private int _sepId;
+        private int _padId;
+        private int _maskId;
+
         private HashSet<string> _specialTokens = [DefaultCls, DefaultSep, DefaultPad, DefaultMask];
 
         // Default minimal labels (fallback) - real model may have many more
@@ -97,10 +102,35 @@ namespace MauiSample.Services
 
                     if (_config != null)
                     {
+                        // Prefer explicit ordered labels if provided
                         if (_config.OrderedLabels is { Length: > 0 })
                         {
                             _entityLabels = _config.OrderedLabels;
                         }
+                        else if (_config.Id2LabelRaw is { Count: > 0 })
+                        {
+                            // Build ordered array from id2label dictionary to guarantee index alignment
+                            var maxIdx = _config.Id2LabelRaw.Keys
+                                .Select(k => int.TryParse(k, out var i) ? i : -1)
+                                .Max();
+                            if (maxIdx >= 0)
+                            {
+                                var ordered = new string[maxIdx + 1];
+                                foreach (var kv in _config.Id2LabelRaw)
+                                {
+                                    if (int.TryParse(kv.Key, out var i) && i < ordered.Length)
+                                        ordered[i] = kv.Value;
+                                }
+                                for (var i = 0; i < ordered.Length; i++)
+                                {
+                                    if (string.IsNullOrWhiteSpace(ordered[i])) ordered[i] = "O"; // fill holes
+                                }
+                                _entityLabels = ordered;
+                                if (DebugLogging)
+                                    Console.WriteLine($"[MedicalNLP] Built label list from id2label (count={_entityLabels.Length}).");
+                            }
+                        }
+
                         if (_config.SpecialTokens is { } st)
                         {
                             _clsToken = st.ClsToken ?? _clsToken;
@@ -123,15 +153,18 @@ namespace MauiSample.Services
                 }
 
                 await InitializeTokenizerAsync();
+                CacheSpecialTokenIds();
                 await LoadLabelsAsync(); // may override if labels asset present
                 await using var modelStream = await FileSystem.OpenAppPackageFileAsync("BiomedicalNER.onnx");
                 await _mlInfer.LoadModelAsync(modelStream);
 
-                // Warmup (small dummy) to reduce first-call latency
+                // Warmup (small dummy) to reduce first-call latency (use real special token ids if available)
                 try
                 {
-                    var warmInputIds = new DenseTensor<long>(new long[] { 101, 102 }, [1, 2]);
-                    var warmMask = new DenseTensor<long>(new long[] { 1, 1 }, [1, 2]);
+                    var warmInputIdsArr = new long[] { _clsId, _sepId };
+                    var warmMaskArr = new long[] { 1, 1 };
+                    var warmInputIds = new DenseTensor<long>(warmInputIdsArr, [1, warmInputIdsArr.Length]);
+                    var warmMask = new DenseTensor<long>(warmMaskArr, [1, warmMaskArr.Length]);
                     var warmInputs = new Dictionary<string, Tensor<long>>
                     {
                         ["input_ids"] = warmInputIds,
@@ -176,7 +209,7 @@ namespace MauiSample.Services
                 if (tokens[0] != _clsToken)
                 {
                     tokens.Insert(0, _clsToken);
-                    tokenIds.Insert(0, FindTokenId(_clsToken));
+                    tokenIds.Insert(0, _clsId);
                 }
 
                 if (tokens[^1] != _sepToken)
@@ -184,7 +217,7 @@ namespace MauiSample.Services
                     if (tokens.Count + 1 <= maxSeq)
                     {
                         tokens.Add(_sepToken);
-                        tokenIds.Add(FindTokenId(_sepToken));
+                        tokenIds.Add(_sepId);
                     }
                 }
 
@@ -195,7 +228,7 @@ namespace MauiSample.Services
                     tokens = [.. tokens.Take(maxSeq)];
                     if (tokens[^1] != _sepToken)
                     {
-                        tokenIds[^1] = FindTokenId(_sepToken);
+                        tokenIds[^1] = _sepId;
                         tokens[^1] = _sepToken;
                     }
                 }
@@ -211,7 +244,7 @@ namespace MauiSample.Services
 
                 for (var i = tokenIds.Count; i < maxSeq; i++)
                 {
-                    inputIdsArr[i] = FindTokenId(_padToken);
+                    inputIdsArr[i] = _padId;
                     attentionMask[i] = 0;
                     tokens.Add(_padToken); // alignment
                 }
@@ -264,13 +297,13 @@ namespace MauiSample.Services
             if (tokens[0] != _clsToken)
             {
                 tokens.Insert(0, _clsToken);
-                tokenIds.Insert(0, FindTokenId(_clsToken));
+                tokenIds.Insert(0, _clsId);
             }
 
             if (tokens[^1] != _sepToken)
             {
                 tokens.Add(_sepToken);
-                tokenIds.Add(FindTokenId(_sepToken));
+                tokenIds.Add(_sepId);
             }
 
             var globalMax = EffectiveMaxSequenceLength;
@@ -283,7 +316,7 @@ namespace MauiSample.Services
                 tokens = [.. tokens.Take(targetMax)];
                 if (tokens[^1] != _sepToken)
                 {
-                    tokenIds[^1] = FindTokenId(_sepToken);
+                    tokenIds[^1] = _sepId;
                     tokens[^1] = _sepToken;
                 }
             }
@@ -298,7 +331,7 @@ namespace MauiSample.Services
 
             for (var i = tokenIds.Count; i < targetMax; i++)
             {
-                inputIdsArr[i] = FindTokenId(_padToken);
+                inputIdsArr[i] = _padId;
                 attentionMaskArr[i] = 0;
             }
 
@@ -391,10 +424,20 @@ namespace MauiSample.Services
             }
         }
 
+        private void CacheSpecialTokenIds()
+        {
+            _clsId = FindTokenId(_clsToken);
+            _sepId = FindTokenId(_sepToken);
+            _padId = FindTokenId(_padToken);
+            _maskId = FindTokenId(_maskToken);
+            if (DebugLogging)
+                Console.WriteLine($"[MedicalNLP] Cached special token ids CLS={_clsId} SEP={_sepId} PAD={_padId} MASK={_maskId}");
+        }
+
         private async Task LoadLabelsAsync()
         {
-            // If config already supplied labels, skip loading file (still allow explicit asset override)
-            if (_config?.OrderedLabels is { Length: > 0 }) return;
+            // If config already supplied labels (ordered or from id2label), skip loading file (still allow explicit asset override)
+            if (_config?.OrderedLabels is { Length: > 0 } || _config?.Id2LabelRaw is { Count: > 0 }) return;
             try
             {
                 var labelsPath = Path.Combine(FileSystem.AppDataDirectory, LabelsAssetFile);
@@ -510,7 +553,15 @@ namespace MauiSample.Services
                     $"[MedicalNLP] Process seqLen={seqLen}, numLabels(model)={numLabels}, labelList={_entityLabels.Length}");
             }
 
+            if (_entityLabels.Length != numLabels && DebugLogging)
+            {
+                Console.WriteLine($"[MedicalNLP] WARNING: label count mismatch (labels={_entityLabels.Length}, model={numLabels}). Indexes > labels will map to 'O'.")
+;
+            }
+
             MedicalEntity? currentEntity = null;
+            var currentTokenCount = 0; // for average confidence
+            var confidenceSum = 0f;
             var probs = new float[numLabels];
 
             for (var i = 0; i < seqLen; i++)
@@ -554,15 +605,21 @@ namespace MauiSample.Services
 
                 if (rawLabel.StartsWith("B-"))
                 {
-                    if (currentEntity != null) entities.Add(currentEntity);
+                    if (currentEntity != null)
+                    {
+                        currentEntity.Confidence = confidenceSum / Math.Max(1, currentTokenCount);
+                        entities.Add(currentEntity);
+                    }
                     currentEntity = new MedicalEntity
                     {
                         Text = token.Replace("##", string.Empty),
                         EntityType = NormalizeLabel(rawLabel[2..]),
-                        Confidence = best,
+                        Confidence = best, // temporary; will be replaced by average
                         StartPosition = i,
                         EndPosition = i
                     };
+                    confidenceSum = best;
+                    currentTokenCount = 1;
                 }
                 else if (rawLabel.StartsWith("I-") &&
                          currentEntity != null &&
@@ -570,19 +627,25 @@ namespace MauiSample.Services
                 {
                     currentEntity.Text += token.StartsWith("##") ? token[2..] : " " + token;
                     currentEntity.EndPosition = i;
-                    currentEntity.Confidence = Math.Max(currentEntity.Confidence, best);
+                    confidenceSum += best;
+                    currentTokenCount++;
                 }
                 else
                 {
                     if (currentEntity != null)
                     {
+                        currentEntity.Confidence = confidenceSum / Math.Max(1, currentTokenCount);
                         entities.Add(currentEntity);
                         currentEntity = null;
                     }
                 }
             }
 
-            if (currentEntity != null) entities.Add(currentEntity);
+            if (currentEntity != null)
+            {
+                currentEntity.Confidence = confidenceSum / Math.Max(1, currentTokenCount);
+                entities.Add(currentEntity);
+            }
             foreach (var e in entities)
             {
                 e.Text = e.Text.Replace(" ##", "").Replace("##", "");
