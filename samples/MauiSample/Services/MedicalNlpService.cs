@@ -102,9 +102,10 @@ namespace MauiSample.Services
                     if (_config != null)
                     {
                         // Prefer explicit ordered labels if provided
-                        if (_config.OrderedLabels is { Length: > 0 })
+                        var orderedLabels = _config.GetOrderedLabels();
+                        if (orderedLabels is { Length: > 0 })
                         {
-                            _entityLabels = _config.OrderedLabels;
+                            _entityLabels = orderedLabels;
                         }
                         else if (_config.Id2LabelRaw is { Count: > 0 })
                         {
@@ -436,7 +437,7 @@ namespace MauiSample.Services
         private async Task LoadLabelsAsync()
         {
             // If config already supplied labels (ordered or from id2label), skip loading file (still allow explicit asset override)
-            if (_config?.OrderedLabels is { Length: > 0 } || _config?.Id2LabelRaw is { Count: > 0 }) return;
+            if (_config?.GetOrderedLabels() is { Length: > 0 } || _config?.Id2LabelRaw is { Count: > 0 }) return;
             try
             {
                 var labelsPath = Path.Combine(FileSystem.AppDataDirectory, LabelsAssetFile);

@@ -149,4 +149,128 @@ public class TensorHelperTests
         Assert.True(softmaxData[2] > softmaxData[1]);
         Assert.True(softmaxData[1] > softmaxData[0]);
     }
+
+    // Additional comprehensive tests
+
+    [Fact]
+    public void CreateTensor_From3DArray_CreatesTensorCorrectly()
+    {
+        // Arrange
+        var data3D = new float[,,]
+        {
+            { { 1f, 2f }, { 3f, 4f } },
+            { { 5f, 6f }, { 7f, 8f } }
+        };
+
+        // Act
+        var tensor = TensorHelper.CreateTensor(data3D);
+        var flat = TensorHelper.ToArray(tensor);
+
+        // Assert
+        Assert.Equal(new[] { 2, 2, 2 }, tensor.Dimensions.ToArray());
+        Assert.Equal(8, tensor.Length);
+        Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f }, flat);
+    }
+
+    [Fact]
+    public void CreateTensor_From2DArray_VerifyFlattenOrder()
+    {
+        // Arrange (2 x 3)
+        var data2D = new float[,]
+        {
+            { 1f, 2f, 3f },
+            { 4f, 5f, 6f }
+        };
+
+        // Act
+        var tensor = TensorHelper.CreateTensor(data2D);
+        var flat = TensorHelper.ToArray(tensor);
+
+        // Assert
+        Assert.Equal(new[] { 2, 3 }, tensor.Dimensions.ToArray());
+        Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f }, flat);
+    }
+
+    [Fact]
+    public void GetShapeString_For3DTensor()
+    {
+        // Arrange dims 2,2,1
+        var data = new float[,,] { { { 0f }, { 1f } }, { { 2f }, { 3f } } };
+        var tensor = TensorHelper.CreateTensor(data);
+
+        // Act
+        var shape = TensorHelper.GetShapeString(tensor);
+
+        // Assert
+        Assert.Equal("[2, 2, 1]", shape);
+    }
+
+    [Fact]
+    public void Softmax_NumericalStability_LargeValues()
+    {
+        // Arrange
+        var data = new[] { 1000f, 1001f, 1002f };
+        var tensor = new DenseTensor<float>(data, new[] { data.Length });
+
+        // Act
+        var softmaxTensor = TensorHelper.Softmax(tensor);
+        var softmaxData = TensorHelper.ToArray(softmaxTensor);
+
+        // Assert
+        var sum = softmaxData.Sum();
+        Assert.Equal(1f, sum, 1e-5);
+        Assert.DoesNotContain(softmaxData, float.IsNaN);
+        Assert.DoesNotContain(softmaxData, float.IsInfinity);
+        Assert.True(softmaxData[2] > softmaxData[1]);
+        Assert.True(softmaxData[1] > softmaxData[0]);
+    }
+
+    [Fact]
+    public void Normalize_PreservesOrderingAndMapsEndpoints()
+    {
+        // Arrange (duplicate min value to ensure stable handling)
+        var data = new[] { 5.5f, 7.0f, 6.1f, 9.9f, 5.5f };
+        var tensor = new DenseTensor<float>(data, new[] { data.Length });
+
+        // Act
+        var normalized = TensorHelper.Normalize(tensor);
+        var normalizedData = TensorHelper.ToArray(normalized);
+
+        // Assert endpoints
+        var min = data.Min();
+        var max = data.Max();
+        for (int i = 0; i < data.Length; i++)
+        {
+            if (data[i] == min) Assert.Equal(0f, normalizedData[i], 1e-5);
+            if (data[i] == max) Assert.Equal(1f, normalizedData[i], 1e-5);
+        }
+        Assert.All(normalizedData, v => Assert.InRange(v, 0f, 1f));
+        // Monotonic ordering for distinct values
+        for (int i = 0; i < data.Length; i++)
+        {
+            for (int j = 0; j < data.Length; j++)
+            {
+                if (data[i] < data[j])
+                {
+                    Assert.True(normalizedData[i] <= normalizedData[j]);
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Reshape_SameDimensions_ReturnsEquivalentTensor()
+    {
+        // Arrange
+        var data = new[] { 2f, 4f, 6f, 8f };
+        var original = new DenseTensor<float>(data, new[] { 2, 2 });
+
+        // Act
+        var reshaped = TensorHelper.Reshape(original, new[] { 2, 2 });
+
+        // Assert
+        Assert.NotSame(original, reshaped); // New tensor instance
+        Assert.Equal(original.Dimensions.ToArray(), reshaped.Dimensions.ToArray());
+        Assert.Equal(TensorHelper.ToArray(original), TensorHelper.ToArray(reshaped));
+    }
 }

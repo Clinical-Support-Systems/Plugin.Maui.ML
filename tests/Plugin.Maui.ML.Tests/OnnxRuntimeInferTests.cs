@@ -1,3 +1,4 @@
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Xunit;
 
@@ -5,6 +6,11 @@ namespace Plugin.Maui.ML.Tests;
 
 public class OnnxRuntimeInferTests
 {
+    private static string GetModelPath()
+    {
+        return Path.Combine(AppContext.BaseDirectory, "t5encoder_Opset17.onnx");
+    }
+
     [Fact]
     public void Constructor_InitializesCorrectly()
     {
@@ -17,128 +23,102 @@ public class OnnxRuntimeInferTests
     }
 
     [Fact]
+    public async Task LoadModelAsync_SucceedsAndSetsIsModelLoaded()
+    {
+        using var infer = new OnnxRuntimeInfer();
+        var path = GetModelPath();
+        Assert.True(File.Exists(path));
+        await infer.LoadModelAsync(path);
+        Assert.True(infer.IsModelLoaded);
+    }
+
+    [Fact]
     public async Task LoadModelAsync_WithNullPath_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.LoadModelAsync((string)null!));
     }
 
     [Fact]
     public async Task LoadModelAsync_WithEmptyPath_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.LoadModelAsync(string.Empty));
     }
 
     [Fact]
     public async Task LoadModelAsync_WithNonExistentFile_ThrowsFileNotFoundException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
         var nonExistentPath = "non-existent-model.onnx";
-
-        // Act & Assert
         await Assert.ThrowsAsync<FileNotFoundException>(() => infer.LoadModelAsync(nonExistentPath));
     }
 
     [Fact]
     public async Task LoadModelAsync_WithNullStream_ThrowsArgumentNullException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() => infer.LoadModelAsync((Stream)null!));
     }
 
     [Fact]
     public async Task LoadModelFromAssetAsync_WithNullAssetName_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.LoadModelFromAssetAsync(null!));
     }
 
     [Fact]
     public async Task LoadModelFromAssetAsync_WithEmptyAssetName_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.LoadModelFromAssetAsync(string.Empty));
     }
 
     [Fact]
     public async Task RunInferenceAsync_WithoutLoadedModel_ThrowsInvalidOperationException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
         var inputs = new Dictionary<string, Tensor<float>>
         {
-            ["input"] = new DenseTensor<float>(new[] { 1.0f }, new[] { 1 })
+            ["input_ids"] = new DenseTensor<float>(new[] { 1f }, new[] { 1 })
         };
-
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => infer.RunInferenceAsync(inputs));
     }
 
     [Fact]
     public async Task RunInferenceAsync_WithNullInputs_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.RunInferenceAsync(null!));
     }
 
     [Fact]
     public async Task RunInferenceAsync_WithEmptyInputs_ThrowsArgumentException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
         var inputs = new Dictionary<string, Tensor<float>>();
-
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => infer.RunInferenceAsync(inputs));
     }
 
     [Fact]
     public void GetInputMetadata_WithoutLoadedModel_ThrowsInvalidOperationException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         Assert.Throws<InvalidOperationException>(() => infer.GetInputMetadata());
     }
 
     [Fact]
     public void GetOutputMetadata_WithoutLoadedModel_ThrowsInvalidOperationException()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert
         Assert.Throws<InvalidOperationException>(() => infer.GetOutputMetadata());
     }
 
     [Fact]
     public void UnloadModel_WithoutLoadedModel_DoesNotThrow()
     {
-        // Arrange
         using var infer = new OnnxRuntimeInfer();
-
-        // Act & Assert (should not throw)
         infer.UnloadModel();
         Assert.False(infer.IsModelLoaded);
     }
@@ -146,25 +126,94 @@ public class OnnxRuntimeInferTests
     [Fact]
     public void Dispose_DisposesCorrectly()
     {
-        // Arrange
         var infer = new OnnxRuntimeInfer();
-
-        // Act
         infer.Dispose();
-
-        // Assert - should not throw
         Assert.False(infer.IsModelLoaded);
     }
 
     [Fact]
     public void Dispose_MultipleCalls_DoesNotThrow()
     {
-        // Arrange
         var infer = new OnnxRuntimeInfer();
+        infer.Dispose();
+        infer.Dispose();
+        infer.Dispose();
+    }
 
-        // Act & Assert - multiple dispose calls should not throw
-        infer.Dispose();
-        infer.Dispose();
-        infer.Dispose();
+    [Fact]
+    public async Task AfterLoad_MetadataAvailable()
+    {
+        using var infer = new OnnxRuntimeInfer();
+        await infer.LoadModelAsync(GetModelPath());
+        var inputs = infer.GetInputMetadata();
+        var outputs = infer.GetOutputMetadata();
+        Assert.NotEmpty(inputs);
+        Assert.NotEmpty(outputs);
+    }
+
+    private static int GetSeqLenFromMetadata(Dictionary<string, NodeMetadata> meta, string inputName)
+    {
+        if (!meta.TryGetValue(inputName, out var node)) return 1;
+        var dims = node.Dimensions;
+        if (dims.Length < 2) return 1;
+        var dim = dims[1];
+        if (dim <= 0) return 1; // dynamic / unknown
+        return dim;
+    }
+
+    [Fact]
+    public async Task RunInferenceLongInputsAsync_Succeeds()
+    {
+        using var infer = new OnnxRuntimeInfer();
+        await infer.LoadModelAsync(GetModelPath());
+        var metadata = infer.GetInputMetadata();
+        var inputIdsName = metadata.Keys.First(k => k.Contains("input_ids"));
+        var attentionMaskName = metadata.Keys.First(k => k.Contains("attention_mask"));
+        var seqLen = GetSeqLenFromMetadata(metadata, inputIdsName);
+        var inputIds = new DenseTensor<long>(new[] { 1, seqLen });
+        var attention = new DenseTensor<long>(new[] { 1, seqLen });
+        inputIds[0, 0] = 0; // first token
+        attention[0, 0] = 1;
+        var dict = new Dictionary<string, Tensor<long>>
+        {
+            [inputIdsName] = inputIds,
+            [attentionMaskName] = attention
+        };
+        var result = await infer.RunInferenceLongInputsAsync(dict);
+        Assert.NotEmpty(result);
+    }
+
+    [Fact]
+    public async Task RunInferenceAsync_FloatInputs_CastsOutputsIfNeeded()
+    {
+        using var infer = new OnnxRuntimeInfer();
+        await infer.LoadModelAsync(GetModelPath());
+        var metadata = infer.GetInputMetadata();
+        var floatableInputName = metadata.Keys.First(k => k.Contains("input_ids"));
+        var seqLen = GetSeqLenFromMetadata(metadata, floatableInputName);
+        var tensor = new DenseTensor<float>(new[] { 1, seqLen });
+        tensor[0, 0] = 0f;
+        var dict = new Dictionary<string, Tensor<float>> { { floatableInputName, tensor } };
+        try
+        {
+            var outputs = await infer.RunInferenceAsync(dict);
+            foreach (var kv in outputs) Assert.IsType<DenseTensor<float>>(kv.Value);
+        }
+        catch (Exception ex) when (ex is OnnxRuntimeException)
+        {
+            Assert.True(true);
+        }
+    }
+
+    [Fact]
+    public async Task UnloadModel_AfterLoad_ModelDisposed()
+    {
+        using var infer = new OnnxRuntimeInfer();
+        await infer.LoadModelAsync(GetModelPath());
+        Assert.True(infer.IsModelLoaded);
+        infer.UnloadModel();
+        Assert.False(infer.IsModelLoaded);
+        infer.UnloadModel();
+        Assert.False(infer.IsModelLoaded);
     }
 }

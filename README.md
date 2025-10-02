@@ -2,6 +2,11 @@
 
 A comprehensive .NET MAUI plugin that provides ONNX runtime inference capabilities.
 
+![Example](example.png)
+
+[![NuGet Version](https://img.shields.io/nuget/v/Plugin.Maui.ML.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.Maui.ML/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/Clinical-Support-Systems/Plugin.Maui.ML/dotnet.yml?branch=main&style=flat-square)](#)
+
 ## Features
 
 - 🧠 **ONNX Runtime Integration**: Full support for ONNX model inference

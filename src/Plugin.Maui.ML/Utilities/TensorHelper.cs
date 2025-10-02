@@ -32,7 +32,7 @@ public static class TensorHelper
         {
             for (var j = 0; j < data.GetLength(1); j++)
             {
-                flatData[i * data.GetLength(1) + j] = data[i, j];
+                flatData[(i * data.GetLength(1)) + j] = data[i, j];
             }
         }
 
@@ -55,7 +55,7 @@ public static class TensorHelper
             {
                 for (var k = 0; k < data.GetLength(2); k++)
                 {
-                    flatData[i * data.GetLength(1) * data.GetLength(2) + j * data.GetLength(2) + k] = data[i, j, k];
+                    flatData[(i * data.GetLength(1) * data.GetLength(2)) + (j * data.GetLength(2)) + k] = data[i, j, k];
                 }
             }
         }
@@ -137,9 +137,11 @@ public static class TensorHelper
         var max = data.Max();
         var range = max - min;
 
-        if (range == 0)
+        // Use epsilon for floating point comparison
+        const float epsilon = 1e-6f;
+        if (Math.Abs(range) < epsilon)
         {
-            return tensor; // All values are the same
+            return tensor; // All values are the same (within tolerance)
         }
 
         var normalizedData = data.Select(x => (x - min) / range).ToArray();

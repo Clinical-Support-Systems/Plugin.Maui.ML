@@ -27,4 +27,12 @@
     <ProjectReference Include="..\..\src\Plugin.Maui.ML\Plugin.Maui.ML.csproj" />
   </ItemGroup>
 
+  <!-- Link the sample ONNX model into the test output for runtime inference tests -->
+  <ItemGroup>
+    <Content Include="..\..\samples\MauiSample\Resources\raw\t5encoder_Opset17.onnx">
+      <Link>t5encoder_Opset17.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

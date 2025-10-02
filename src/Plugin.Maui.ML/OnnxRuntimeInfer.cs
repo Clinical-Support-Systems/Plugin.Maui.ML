@@ -22,15 +22,13 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         ConfigurePlatformSpecificOptions();
     }
 
+    /// <summary>
+    ///     Releases resources used by the OnnxRuntimeInfer instance.
+    /// </summary>
     public void Dispose()
     {
-        if (_disposed)
-            return;
-
-        UnloadModel();
-        _sessionOptions?.Dispose();
-        _sessionOptions = null;
-        _disposed = true;
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -151,6 +149,7 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
 
     /// <summary>
     ///     Runs inference using Int64 inputs (e.g., token ids / attention masks).
+    ///     Will cast to model-expected element types (Int64 / Int32 / Float).
     /// </summary>
     /// <param name="inputs">
     ///     Input tensors for the model, provided as a dictionary mapping input names to Tensor&lt;long&gt; objects.
@@ -169,7 +168,43 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
     {
         if (inputs == null || inputs.Count == 0)
             throw new ArgumentException("Inputs cannot be null or empty", nameof(inputs));
-        var named = inputs.Select(kvp => NamedOnnxValue.CreateFromTensor(kvp.Key, kvp.Value));
+        if (_session == null) throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
+
+        // Build NamedOnnxValue list casting as needed based on input metadata
+        var meta = _session.InputMetadata;
+        var named = new List<NamedOnnxValue>();
+        foreach (var (key, src) in inputs)
+        {
+            if (!meta.TryGetValue(key, out var nodeMeta))
+                throw new ArgumentException($"Input '{key}' not found in model metadata.");
+            var targetType = nodeMeta.ElementType;
+            if (targetType == typeof(long))
+            {
+                named.Add(NamedOnnxValue.CreateFromTensor(key, src));
+            }
+            else if (targetType == typeof(float))
+            {
+                var cast = new DenseTensor<float>(src.Dimensions.ToArray());
+                var span = cast.Buffer.Span;
+                var arr = src.ToArray();
+                for (var i = 0; i < arr.Length; i++) span[i] = arr[i];
+                named.Add(NamedOnnxValue.CreateFromTensor(key, cast));
+            }
+            else if (targetType == typeof(int))
+            {
+                var cast = new DenseTensor<int>(src.Dimensions.ToArray());
+                var span = cast.Buffer.Span;
+                var arr = src.ToArray();
+                for (var i = 0; i < arr.Length; i++) span[i] = checked((int)arr[i]);
+                named.Add(NamedOnnxValue.CreateFromTensor(key, cast));
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Unsupported target input element type '{targetType}' for provided Int64 tensor.");
+            }
+        }
+
         return RunInternal(named, cancellationToken);
     }
 
@@ -221,6 +256,36 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         }
     }
 
+    /// <summary>
+    ///     Finalizer to ensure unmanaged resources are released.
+    /// </summary>
+    ~OnnxRuntimeInfer()
+    {
+        Dispose(false);
+    }
+
+    /// <summary>
+    ///     Protected implementation of Dispose pattern.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose; false if called from finalizer.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            // Dispose managed resources
+            UnloadModel();
+            _sessionOptions?.Dispose();
+            _sessionOptions = null;
+        }
+
+        // Free unmanaged resources (if any) here
+
+        _disposed = true;
+    }
+
     private Task<Dictionary<string, Tensor<float>>> RunInternal(IEnumerable<NamedOnnxValue> inputs,
         CancellationToken ct)
     {
@@ -232,7 +297,6 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
                 using var results = _session!.Run(inputs.ToList().AsReadOnly());
                 var outputs = new Dictionary<string, Tensor<float>>();
                 foreach (var r in results)
-                {
                     switch (r.Value)
                     {
                         case Tensor<float> ft:
@@ -243,10 +307,7 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
                         {
                             var castL = new DenseTensor<float>(lt.Dimensions.ToArray());
                             var i = 0;
-                            foreach (var v in lt.ToArray())
-                            {
-                                castL.Buffer.Span[i++] = v;
-                            }
+                            foreach (var v in lt.ToArray()) castL.Buffer.Span[i++] = v;
 
                             outputs[r.Name] = castL;
                             break;
@@ -256,10 +317,7 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
                         {
                             var castI = new DenseTensor<float>(it.Dimensions.ToArray());
                             var j = 0;
-                            foreach (var v in it.ToArray())
-                            {
-                                castI.Buffer.Span[j++] = v;
-                            }
+                            foreach (var v in it.ToArray()) castI.Buffer.Span[j++] = v;
 
                             outputs[r.Name] = castI;
                             break;
@@ -269,7 +327,6 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
                             throw new InvalidOperationException(
                                 $"Unsupported output tensor type: {r.Value?.GetType()}");
                     }
-                }
 
                 return outputs;
             }
