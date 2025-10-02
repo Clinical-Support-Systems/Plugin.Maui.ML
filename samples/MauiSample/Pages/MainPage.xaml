@@ -91,10 +91,10 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:MedicalEntity">
                         <Border
-                            Margin="0,5"
+                            Margin="10,3"
                             Padding="10"
                             Stroke="LightGray">
-                            <StackLayout>
+                            <StackLayout Spacing="5">
                                 <Label>
                                     <Label.FormattedText>
                                         <FormattedString>
