@@ -2,6 +2,7 @@
 using MauiSample.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.ML;
+using Plugin.Maui.ML.Configuration;
 using Syncfusion.Maui.Toolkit.Hosting;
 
 namespace MauiSample
@@ -35,6 +36,9 @@ namespace MauiSample
                 config.UseTransientService = false;
                 config.EnablePerformanceLogging = true;
             });
+
+            // Register config provider (looks for BiomedicalNER.config.json at app base directory / platform asset copy)
+            builder.Services.AddSingleton<INlpModelConfigProvider>(_ => new FileSystemNlpModelConfigProvider());
 
 #if DEBUG
             builder.Logging.AddDebug();

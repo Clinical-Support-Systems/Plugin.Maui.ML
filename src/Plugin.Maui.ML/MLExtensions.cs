@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Plugin.Maui.ML.Configuration;
 
 namespace Plugin.Maui.ML;
 
@@ -42,6 +43,25 @@ public static class MLExtensions
         // Register configuration
         services.TryAddSingleton(config);
 
+        return services;
+    }
+
+    /// <summary>
+    /// Register default ONNX runtime inference service.
+    /// </summary>
+    public static IServiceCollection AddMauiMl(this IServiceCollection services)
+    {
+        services.AddSingleton<IMLInfer, OnnxRuntimeInfer>();
+        return services;
+    }
+
+    /// <summary>
+    /// Register a model configuration provider. If none is registered, consumers can still pass configs manually.
+    /// </summary>
+    public static IServiceCollection AddNlpModelConfigProvider<TProvider>(this IServiceCollection services)
+        where TProvider : class, INlpModelConfigProvider
+    {
+        services.AddSingleton<INlpModelConfigProvider, TProvider>();
         return services;
     }
 }

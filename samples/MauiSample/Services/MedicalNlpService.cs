@@ -4,6 +4,7 @@ using MauiSample.Models;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Microsoft.ML.Tokenizers;
 using Plugin.Maui.ML;
+using Plugin.Maui.ML.Configuration;
 
 namespace MauiSample.Services
 {
@@ -17,16 +18,26 @@ namespace MauiSample.Services
 
     public partial class MedicalNlpService : IMedicalNlpService
     {
-        private const string LabelsAssetFile = "ner_labels.txt"; // one label per line matching model output order
+        private const string LabelsAssetFile = "ner_labels.txt"; // optional label list fallback (one per line)
         private const string VocabAssetFile = "ner_vocab.txt";
-        private const int ModelMaxSequenceLength = 512; // DistilBERT config max_position_embeddings
+        private const int ModelMaxSequenceLength = 512; // default fallback
         private const bool DebugLogging = true;
-        private const string CLS = "[CLS]";
-        private const string SEP = "[SEP]";
-        private const string PAD = "[PAD]";
-        private static readonly HashSet<string> _specialTokens = [CLS, SEP, PAD, "[MASK]"];
+        private const string DefaultCls = "[CLS]";
+        private const string DefaultSep = "[SEP]";
+        private const string DefaultPad = "[PAD]";
+        private const string DefaultMask = "[MASK]";
 
         private readonly IMLInfer _mlInfer;
+        private readonly INlpModelConfigProvider? _configProvider;
+        private NlpModelConfig? _config;
+
+        private string _clsToken = DefaultCls;
+        private string _sepToken = DefaultSep;
+        private string _padToken = DefaultPad;
+        private string _maskToken = DefaultMask;
+        private string _defaultPooling = "mean";
+
+        private HashSet<string> _specialTokens = [DefaultCls, DefaultSep, DefaultPad, DefaultMask];
 
         // Default minimal labels (fallback) - real model may have many more
         private string[] _entityLabels =
@@ -44,29 +55,82 @@ namespace MauiSample.Services
 
         private Tokenizer? _tokenizer;
 
-        public MedicalNlpService(IMLInfer mlInfer)
+        public MedicalNlpService(IMLInfer mlInfer, INlpModelConfigProvider? configProvider = null)
         {
             _mlInfer = mlInfer;
+            _configProvider = configProvider;
         }
 
         public bool IsInitialized { get; private set; }
+
+        private int EffectiveMaxSequenceLength => _config?.MaxPositionEmbeddings ?? ModelMaxSequenceLength;
 
         public async Task InitializeAsync()
         {
             if (IsInitialized) return;
             try
             {
+                // Load config first (model key derived from ONNX file name without extension)
+                if (_configProvider != null)
+                {
+                    // Try common naming patterns in order
+                    var tried = new List<string>();
+                    string? loadedKey = null;
+                    foreach (var key in new[] { "BiomedicalNER", "ner", "ner_config" })
+                    {
+                        try
+                        {
+                            tried.Add(key);
+                            _config = await _configProvider.GetConfigAsync(key);
+                            if (_config != null)
+                            {
+                                loadedKey = key;
+                                break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (DebugLogging)
+                                Console.WriteLine($"[MedicalNLP] Config attempt '{key}' failed: {ex.Message}");
+                        }
+                    }
+
+                    if (_config != null)
+                    {
+                        if (_config.OrderedLabels is { Length: > 0 })
+                        {
+                            _entityLabels = _config.OrderedLabels;
+                        }
+                        if (_config.SpecialTokens is { } st)
+                        {
+                            _clsToken = st.ClsToken ?? _clsToken;
+                            _sepToken = st.SepToken ?? _sepToken;
+                            _padToken = st.PadToken ?? _padToken;
+                            _maskToken = st.MaskToken ?? _maskToken;
+                            _specialTokens = new HashSet<string>([_clsToken, _sepToken, _padToken, _maskToken]);
+                        }
+                        if (!string.IsNullOrWhiteSpace(_config.DefaultPooling))
+                        {
+                            _defaultPooling = _config.DefaultPooling!.ToLowerInvariant();
+                        }
+                        if (DebugLogging)
+                            Console.WriteLine($"[MedicalNLP] Loaded config using key '{loadedKey}'. Tried: {string.Join(",", tried)}");
+                    }
+                    else if (DebugLogging)
+                    {
+                        Console.WriteLine("[MedicalNLP] No config found. Tried keys: " + string.Join(",", tried));
+                    }
+                }
+
                 await InitializeTokenizerAsync();
-                await LoadLabelsAsync();
+                await LoadLabelsAsync(); // may override if labels asset present
                 await using var modelStream = await FileSystem.OpenAppPackageFileAsync("BiomedicalNER.onnx");
                 await _mlInfer.LoadModelAsync(modelStream);
 
                 // Warmup (small dummy) to reduce first-call latency
                 try
                 {
-                    var warmInputIds =
-                        new DenseTensor<long>(new long[] { 101, 102 },
-                            [1, 2]); // if vocab matches BERT style ids (safe no-op if ignored)
+                    var warmInputIds = new DenseTensor<long>(new long[] { 101, 102 }, [1, 2]);
                     var warmMask = new DenseTensor<long>(new long[] { 1, 1 }, [1, 2]);
                     var warmInputs = new Dictionary<string, Tensor<long>>
                     {
@@ -75,10 +139,7 @@ namespace MauiSample.Services
                     };
                     _ = _mlInfer.RunInferenceLongInputsAsync(warmInputs); // fire & forget
                 }
-                catch
-                {
-                    /* ignore warmup failures */
-                }
+                catch { /* ignore warmup failures */ }
 
                 if (DebugLogging)
                 {
@@ -86,7 +147,7 @@ namespace MauiSample.Services
                     var outputs = _mlInfer.GetOutputMetadata();
                     Console.WriteLine(
                         $"[MedicalNLP] Loaded NER model. Inputs: {string.Join(", ", inputs.Keys)}, Outputs: {string.Join(", ", outputs.Keys)}");
-                    Console.WriteLine($"[MedicalNLP] Label count: {_entityLabels.Length}");
+                    Console.WriteLine($"[MedicalNLP] Label count: {_entityLabels.Length}; MaxSeq={EffectiveMaxSequenceLength}");
                 }
 
                 IsInitialized = true;
@@ -104,6 +165,7 @@ namespace MauiSample.Services
             if (string.IsNullOrWhiteSpace(text)) return [];
             try
             {
+                var maxSeq = EffectiveMaxSequenceLength;
                 // Tokenize (uncased model) – tokenizer already set to lowercase in initialization
                 var encoding = _tokenizer!.EncodeToTokens(text, out _).ToList();
                 var tokenIds = encoding.ConvertAll(x => x.Id);
@@ -111,52 +173,51 @@ namespace MauiSample.Services
                 if (tokens.Count == 0) return [];
 
                 // Add special tokens if absent
-                if (tokens[0] != CLS)
+                if (tokens[0] != _clsToken)
                 {
-                    tokens.Insert(0, CLS);
-                    tokenIds.Insert(0, FindTokenId(CLS));
+                    tokens.Insert(0, _clsToken);
+                    tokenIds.Insert(0, FindTokenId(_clsToken));
                 }
 
-                if (tokens[^1] != SEP)
+                if (tokens[^1] != _sepToken)
                 {
-                    if (tokens.Count + 1 <= ModelMaxSequenceLength)
+                    if (tokens.Count + 1 <= maxSeq)
                     {
-                        tokens.Add(SEP);
-                        tokenIds.Add(FindTokenId(SEP));
+                        tokens.Add(_sepToken);
+                        tokenIds.Add(FindTokenId(_sepToken));
                     }
                 }
 
                 // Truncate if exceeds max (reserve last token for SEP)
-                if (tokenIds.Count > ModelMaxSequenceLength)
+                if (tokenIds.Count > maxSeq)
                 {
-                    tokenIds = [.. tokenIds.Take(ModelMaxSequenceLength)];
-                    tokens = [.. tokens.Take(ModelMaxSequenceLength)];
-                    if (tokens[^1] != SEP)
+                    tokenIds = [.. tokenIds.Take(maxSeq)];
+                    tokens = [.. tokens.Take(maxSeq)];
+                    if (tokens[^1] != _sepToken)
                     {
-                        // force SEP at end if truncated
-                        tokenIds[^1] = FindTokenId(SEP);
-                        tokens[^1] = SEP;
+                        tokenIds[^1] = FindTokenId(_sepToken);
+                        tokens[^1] = _sepToken;
                     }
                 }
 
-                // Pad to max length for stable shape (optional but matches training typical approach)
-                var attentionMask = new long[ModelMaxSequenceLength];
-                var inputIdsArr = new long[ModelMaxSequenceLength];
+                // Pad to max length for stable shape
+                var attentionMask = new long[maxSeq];
+                var inputIdsArr = new long[maxSeq];
                 for (var i = 0; i < tokenIds.Count; i++)
                 {
                     inputIdsArr[i] = tokenIds[i];
-                    attentionMask[i] = 1; // real token
+                    attentionMask[i] = 1;
                 }
 
-                for (var i = tokenIds.Count; i < ModelMaxSequenceLength; i++)
+                for (var i = tokenIds.Count; i < maxSeq; i++)
                 {
-                    inputIdsArr[i] = FindTokenId(PAD); // pad id (0 typical)
+                    inputIdsArr[i] = FindTokenId(_padToken);
                     attentionMask[i] = 0;
-                    tokens.Add(PAD); // keep alignment – ProcessNerOutputs will skip
+                    tokens.Add(_padToken); // alignment
                 }
 
-                var inputIdsTensor = new DenseTensor<long>(inputIdsArr, [1, ModelMaxSequenceLength]);
-                var attentionMaskTensor = new DenseTensor<long>(attentionMask, [1, ModelMaxSequenceLength]);
+                var inputIdsTensor = new DenseTensor<long>(inputIdsArr, [1, maxSeq]);
+                var attentionMaskTensor = new DenseTensor<long>(attentionMask, [1, maxSeq]);
 
                 var inputs = new Dictionary<string, Tensor<long>>
                 {
@@ -194,38 +255,39 @@ namespace MauiSample.Services
                 throw new InvalidOperationException("Service not initialized. Call InitializeAsync first.");
             if (!_mlInfer.IsModelLoaded) await _mlInfer.LoadModelFromAssetAsync("SentenceEmbedding.onnx");
 
+            pooling = string.IsNullOrWhiteSpace(pooling) || pooling == "mean" ? _defaultPooling : pooling;
+
             var encoding = _tokenizer!.EncodeToTokens(text, out _).ToList();
             var tokenIds = encoding.ConvertAll(t => (long)t.Id);
             var tokens = encoding.ConvertAll(t => t.Value);
 
-            // Add special tokens
-            if (tokens[0] != CLS)
+            if (tokens[0] != _clsToken)
             {
-                tokens.Insert(0, CLS);
-                tokenIds.Insert(0, FindTokenId(CLS));
+                tokens.Insert(0, _clsToken);
+                tokenIds.Insert(0, FindTokenId(_clsToken));
             }
 
-            if (tokens[^1] != SEP)
+            if (tokens[^1] != _sepToken)
             {
-                tokens.Add(SEP);
-                tokenIds.Add(FindTokenId(SEP));
+                tokens.Add(_sepToken);
+                tokenIds.Add(FindTokenId(_sepToken));
             }
 
+            var globalMax = EffectiveMaxSequenceLength;
             var targetMax = maxSequenceLength.HasValue
-                ? Math.Min(ModelMaxSequenceLength, maxSequenceLength.Value)
-                : ModelMaxSequenceLength;
+                ? Math.Min(globalMax, maxSequenceLength.Value)
+                : globalMax;
             if (tokenIds.Count > targetMax)
             {
                 tokenIds = [.. tokenIds.Take(targetMax)];
                 tokens = [.. tokens.Take(targetMax)];
-                if (tokens[^1] != SEP)
+                if (tokens[^1] != _sepToken)
                 {
-                    tokenIds[^1] = FindTokenId(SEP);
-                    tokens[^1] = SEP;
+                    tokenIds[^1] = FindTokenId(_sepToken);
+                    tokens[^1] = _sepToken;
                 }
             }
 
-            // Pad
             var inputIdsArr = new long[targetMax];
             var attentionMaskArr = new long[targetMax];
             for (var i = 0; i < tokenIds.Count; i++)
@@ -236,7 +298,7 @@ namespace MauiSample.Services
 
             for (var i = tokenIds.Count; i < targetMax; i++)
             {
-                inputIdsArr[i] = FindTokenId(PAD);
+                inputIdsArr[i] = FindTokenId(_padToken);
                 attentionMaskArr[i] = 0;
             }
 
@@ -264,7 +326,6 @@ namespace MauiSample.Services
                         for (var i = 0; i < hidden; i++) result[i] = embeddingSource[0, i];
                         break;
                     }
-
                 case 3:
                     {
                         var seq = dims[1];
@@ -277,39 +338,27 @@ namespace MauiSample.Services
                             case "cls":
                                 for (var h = 0; h < hidden; h++) result[h] = embeddingSource[0, 0, h];
                                 break;
-
                             case "max":
                                 for (var h = 0; h < hidden; h++)
                                 {
                                     var maxVal = float.MinValue;
                                     foreach (var ti in validTokenIndices)
-                                    {
                                         maxVal = Math.Max(maxVal, embeddingSource[0, ti, h]);
-                                    }
-
                                     result[h] = maxVal;
                                 }
-
                                 break;
-
-                            default:
+                            default: // mean
                                 for (var h = 0; h < hidden; h++)
                                 {
                                     double sum = 0;
                                     foreach (var ti in validTokenIndices)
-                                    {
                                         sum += embeddingSource[0, ti, h];
-                                    }
-
                                     result[h] = (float)(sum / validCount);
                                 }
-
                                 break;
                         }
-
                         break;
                     }
-
                 default:
                     throw new NotSupportedException($"Unexpected embedding tensor rank: {dims.Length}");
             }
@@ -329,11 +378,7 @@ namespace MauiSample.Services
                     await stream.CopyToAsync(fileStream);
                 }
 
-                // DistilBERT base uncased -> lowercase
-                var bertOptions = new BertOptions
-                {
-                    LowerCaseBeforeTokenization = true
-                };
+                var bertOptions = new BertOptions { LowerCaseBeforeTokenization = true };
                 _tokenizer = await BertTokenizer.CreateAsync(vocabPath, bertOptions);
                 if (DebugLogging)
                     Console.WriteLine("[MedicalNLP] Loaded tokenizer (lowercased) from " + VocabAssetFile);
@@ -348,9 +393,10 @@ namespace MauiSample.Services
 
         private async Task LoadLabelsAsync()
         {
+            // If config already supplied labels, skip loading file (still allow explicit asset override)
+            if (_config?.OrderedLabels is { Length: > 0 }) return;
             try
             {
-                // Try to copy labels file to writable path if exists in assets
                 var labelsPath = Path.Combine(FileSystem.AppDataDirectory, LabelsAssetFile);
                 if (!File.Exists(labelsPath))
                 {
@@ -367,8 +413,7 @@ namespace MauiSample.Services
                             Console.WriteLine(
                                 $"[MedicalNLP] Labels asset '{LabelsAssetFile}' not found. Using fallback labels ({_entityLabels.Length}).");
                         }
-
-                        return; // keep fallback
+                        return;
                     }
                 }
 
@@ -394,19 +439,16 @@ namespace MauiSample.Services
             {
                 if (kv.Key.Contains("logits", StringComparison.OrdinalIgnoreCase)) return kv.Value;
             }
-
             foreach (var kv in outputs)
             {
                 var dims = kv.Value.Dimensions.ToArray();
-                if (dims.Length == 3) return kv.Value; // accept first rank-3 now (label count may be large)
+                if (dims.Length == 3) return kv.Value;
             }
-
             foreach (var kv in outputs)
             {
                 var dims = kv.Value.Dimensions.ToArray();
                 if (dims.Length == 2) return ReshapeRank2ToRank3(kv.Value);
             }
-
             return outputs.FirstOrDefault().Value;
         }
 
@@ -414,31 +456,39 @@ namespace MauiSample.Services
         {
             var dims = t.Dimensions;
             if (dims.Length != 2) return t;
-            var reshaped = new DenseTensor<float>([1, dims[0], dims[1]]); // assume [seq, labels]
+            var reshaped = new DenseTensor<float>([1, dims[0], dims[1]]);
             for (var i = 0; i < dims[0]; i++)
             {
-                for (var j = 0; j < dims[1]; j++)
-                {
-                    reshaped[0, i, j] = t[i, j];
-                }
+                for (var j = 0; j < dims[1]; j++) reshaped[0, i, j] = t[i, j];
             }
-
             return reshaped;
         }
 
-        private static string NormalizeLabel(string raw)
+        private string NormalizeLabel(string raw)
         {
-            return string.IsNullOrEmpty(raw) ? raw :
-                // Clean bracket artifacts present in some labels
-                BracketArtifactRegex().Replace(raw, string.Empty);
+            if (string.IsNullOrEmpty(raw)) return raw;
+            var label = raw;
+            if (_config?.Normalization?.ReplaceMap is { Count: > 0 } map && map.TryGetValue(label, out var mapped))
+                label = mapped;
+            label = BracketArtifactRegex().Replace(label, string.Empty);
+            if (_config?.Normalization?.StripPatterns is not { Length: > 0 } pats)
+                return label;
+            foreach (var p in pats)
+            {
+                try { label = Regex.Replace(label, p, string.Empty); }
+                catch
+                {
+                    // ignored
+                }
+            }
+            return label;
         }
 
         private int FindTokenId(string token)
         {
             var tokens = _tokenizer!.EncodeToTokens(token, out _);
             var first = tokens.FirstOrDefault();
-            // EncodedToken may be default(struct) with Id==0 if not found
-            return first.Id;
+            return first.Id; // 0 if not found
         }
 
         private List<MedicalEntity> ProcessNerOutputs(Tensor<float> logits, string[] tokens,
@@ -465,11 +515,10 @@ namespace MauiSample.Services
 
             for (var i = 0; i < seqLen; i++)
             {
-                // Skip padding positions if attention mask provided
                 if (attentionMask != null && attentionMask.Length > i && attentionMask[i] == 0)
                     break; // reached padding
                 var token = tokens[i];
-                if (_specialTokens.Contains(token)) continue; // do not label special tokens
+                if (_specialTokens.Contains(token)) continue;
 
                 var maxLogit = float.MinValue;
                 for (var j = 0; j < numLabels; j++)
@@ -486,15 +535,13 @@ namespace MauiSample.Services
                     probs[j] = (float)e;
                     sum += e;
                 }
-
                 for (var j = 0; j < numLabels; j++) probs[j] /= (float)sum;
+
                 var bestIdx = 0;
                 var best = -1f;
                 for (var j = 0; j < numLabels; j++)
                 {
-                    if (!(probs[j] > best))
-                        continue;
-
+                    if (!(probs[j] > best)) continue;
                     best = probs[j];
                     bestIdx = j;
                 }
@@ -502,8 +549,7 @@ namespace MauiSample.Services
                 var rawLabel = bestIdx < _entityLabels.Length ? _entityLabels[bestIdx] : "O";
                 if (DebugLogging)
                 {
-                    Console.WriteLine(
-                        $"[MedicalNLP] token[{i}]='{token}' -> {rawLabel} ({best:0.000}) (rawIdx={bestIdx})");
+                    Console.WriteLine($"[MedicalNLP] token[{i}]='{token}' -> {rawLabel} ({best:0.000}) (rawIdx={bestIdx})");
                 }
 
                 if (rawLabel.StartsWith("B-"))
@@ -524,8 +570,7 @@ namespace MauiSample.Services
                 {
                     currentEntity.Text += token.StartsWith("##") ? token[2..] : " " + token;
                     currentEntity.EndPosition = i;
-                    currentEntity.Confidence =
-                        Math.Max(currentEntity.Confidence, best); // keep max confidence across span
+                    currentEntity.Confidence = Math.Max(currentEntity.Confidence, best);
                 }
                 else
                 {
@@ -555,7 +600,6 @@ namespace MauiSample.Services
             return entities;
         }
 
-        [GeneratedRegex(@"[\[\]\(\)]")]
-        private static partial Regex BracketArtifactRegex();
+        [GeneratedRegex(@"[\[\]\(\)]")] private static partial Regex BracketArtifactRegex();
     }
 }
