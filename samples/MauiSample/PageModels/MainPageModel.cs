@@ -1,9 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiSample.Models;
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Plugin.Maui.ML;
+// ReSharper disable UnusedParameterInPartialMethod
+
 // For NodeMetadata
 
 namespace MauiSample.PageModels
@@ -13,27 +14,35 @@ namespace MauiSample.PageModels
         private const int DefaultSequenceLength = 128;
         private readonly CategoryRepository _categoryRepository;
         private readonly ModalErrorHandler _errorHandler;
+        private readonly IMedicalNlpService _medicalNlpService;
         private readonly IMLInfer _mlInfer;
         private readonly ProjectRepository _projectRepository;
         private readonly SeedDataService _seedDataService;
         private readonly TaskRepository _taskRepository;
+
         [ObservableProperty] private string _answer = string.Empty;
         private bool _dataLoaded;
+        [ObservableProperty] private List<MedicalEntity> _extractedEntities = [];
         [ObservableProperty] private bool _isBusy;
+        [ObservableProperty] private bool _isMedicalNlpReady;
         [ObservableProperty] private bool _isModelLoading;
+        [ObservableProperty] private bool _isMedicalNlpLoading; // NEW: track medical NLP model loading state
         private bool _isNavigatedTo;
         [ObservableProperty] private bool _isRefreshing;
-        [ObservableProperty] private List<Project> _projects = new();
-        [ObservableProperty] private string _question = string.Empty;
-        [ObservableProperty] private List<ProjectTask> _tasks = new();
-        [ObservableProperty] private string _today = DateTime.Now.ToString("dddd, MMM d");
-        [ObservableProperty] private List<Brush> _todoCategoryColors = new();
+        [ObservableProperty] private string _medicalStatus = "Not initialized";
 
-        [ObservableProperty] private List<CategoryChartData> _todoCategoryData = new();
+        // Medical NLP properties
+        [ObservableProperty] private string _medicalText = "Patient has type 2 diabetes mellitus and hypertension. Currently taking metformin 1000mg twice daily and lisinopril 10mg once daily.";
+        [ObservableProperty] private List<Project> _projects = [];
+        [ObservableProperty] private string _question = string.Empty;
+        [ObservableProperty] private List<ProjectTask> _tasks = [];
+        [ObservableProperty] private string _today = DateTime.Now.ToString("dddd, MMM d");
+        [ObservableProperty] private List<Brush> _todoCategoryColors = [];
+        [ObservableProperty] private List<CategoryChartData> _todoCategoryData = [];
 
         public MainPageModel(SeedDataService seedDataService, ProjectRepository projectRepository,
             TaskRepository taskRepository, CategoryRepository categoryRepository, ModalErrorHandler errorHandler,
-            IMLInfer mlInfer)
+            IMLInfer mlInfer, IMedicalNlpService medicalNlpService)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
@@ -41,9 +50,10 @@ namespace MauiSample.PageModels
             _errorHandler = errorHandler;
             _seedDataService = seedDataService;
             _mlInfer = mlInfer;
+            _medicalNlpService = medicalNlpService;
         }
 
-        public bool HasCompletedTasks => Tasks?.Any(t => t.IsCompleted) ?? false;
+        public bool HasCompletedTasks => Tasks.Any(t => t.IsCompleted);
 
         private async Task EnsureModelLoaded()
         {
@@ -57,6 +67,29 @@ namespace MauiSample.PageModels
             }
             catch (Exception ex) { Answer = $"Model load error: {ex.Message}"; }
             finally { IsModelLoading = false; }
+        }
+
+        private async Task EnsureMedicalNlpInitialized()
+        {
+            if (_medicalNlpService.IsInitialized || IsMedicalNlpLoading) return;
+
+            try
+            {
+                IsMedicalNlpLoading = true;
+                MedicalStatus = "Initializing medical NLP (this may take a moment)...";
+                await _medicalNlpService.InitializeAsync();
+                IsMedicalNlpReady = true;
+                MedicalStatus = "Medical NLP ready";
+            }
+            catch (Exception ex)
+            {
+                IsMedicalNlpReady = false;
+                MedicalStatus = $"Failed: {ex.Message}";
+            }
+            finally
+            {
+                IsMedicalNlpLoading = false;
+            }
         }
 
         private async Task LoadData()
@@ -133,6 +166,9 @@ namespace MauiSample.PageModels
             }
 
             await EnsureModelLoaded();
+
+            // Initialize medical NLP in background (will set IsMedicalNlpLoading to show busy indicator)
+            _ = EnsureMedicalNlpInitialized();
         }
 
         [RelayCommand]
@@ -175,12 +211,68 @@ namespace MauiSample.PageModels
             await AppShell.DisplayToastAsync("All cleaned up!");
         }
 
+        // Medical NLP Commands
+
+        [RelayCommand(CanExecute = nameof(CanExtractEntities))]
+        private async Task ExtractMedicalEntities()
+        {
+            if (string.IsNullOrWhiteSpace(MedicalText))
+            {
+                MedicalStatus = "Enter medical text";
+                return;
+            }
+
+            await EnsureMedicalNlpInitialized();
+
+            if (!IsMedicalNlpReady)
+            {
+                MedicalStatus = "Medical NLP not ready";
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                MedicalStatus = "Extracting entities...";
+
+                var entities = await _medicalNlpService.ExtractEntitiesAsync(MedicalText);
+                ExtractedEntities = entities;
+
+                MedicalStatus = $"Found {entities.Count} entities";
+            }
+            catch (Exception ex)
+            {
+                MedicalStatus = $"Error: {ex.Message}";
+                ExtractedEntities = [];
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task TestMedicalSample()
+        {
+            MedicalText =
+                "Patient diagnosed with acute myocardial infarction. Prescribed aspirin 325mg, metoprolol 50mg, and atorvastatin 40mg. Scheduled for cardiac catheterization procedure.";
+            await ExtractMedicalEntities();
+        }
+
+        private bool CanExtractEntities()
+        {
+            // Block while general busy, medical NLP loading, or not ready yet
+            return !IsBusy && !IsMedicalNlpLoading && IsMedicalNlpReady;
+        }
+
+        // Original T5 inference
+
         private static long[] Tokenize(string text, int maxLen)
         {
             var tokens = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var ids = new long[maxLen];
             for (var i = 0; i < Math.Min(tokens.Length, maxLen); i++)
-                ids[i] = Math.Abs(tokens[i].GetHashCode()) % 32000 + 1; // pseudo vocab id
+                ids[i] = Math.Abs(tokens[i].GetHashCode()) % 32000 + 1;
             return ids;
         }
 
@@ -212,12 +304,9 @@ namespace MauiSample.PageModels
                     return;
                 }
 
-                // Determine primary input (prefer input_ids)
-                NodeMetadata firstMeta;
-                if (!meta.TryGetValue("input_ids", out firstMeta))
+                if (!meta.TryGetValue("input_ids", out var firstMeta))
                     firstMeta = meta.First().Value;
 
-                // Determine sequence length
                 var dims = firstMeta.Dimensions;
                 var seqLen = DefaultSequenceLength;
                 if (dims.Length > 1 && dims[1] > 0) seqLen = dims[1];
@@ -225,7 +314,6 @@ namespace MauiSample.PageModels
                 var tokenIds = Tokenize(Question, seqLen);
 
                 var allLong = meta.Values.All(m => m.ElementType == typeof(long) || m.ElementType == typeof(long));
-                var allFloat = meta.Values.All(m => m.ElementType == typeof(float) || m.ElementType == typeof(double));
 
                 if (allLong)
                 {
@@ -250,7 +338,7 @@ namespace MauiSample.PageModels
                     var outputs = await _mlInfer.RunInferenceLongInputsAsync(inputs);
                     DisplayFirstOutput(outputs.First());
                 }
-                else // fallback: build float inputs
+                else
                 {
                     var inputs = new Dictionary<string, Tensor<float>>();
                     foreach (var kv in meta)
@@ -298,11 +386,23 @@ namespace MauiSample.PageModels
         partial void OnIsBusyChanged(bool value)
         {
             AskQuestionCommand.NotifyCanExecuteChanged();
+            ExtractMedicalEntitiesCommand.NotifyCanExecuteChanged();
         }
 
         partial void OnIsModelLoadingChanged(bool value)
         {
             AskQuestionCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnIsMedicalNlpReadyChanged(bool value)
+        {
+            ExtractMedicalEntitiesCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnIsMedicalNlpLoadingChanged(bool value)
+        {
+            // Update button state while loading NLP model
+            ExtractMedicalEntitiesCommand.NotifyCanExecuteChanged();
         }
     }
 }

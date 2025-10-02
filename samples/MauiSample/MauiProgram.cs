@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using MauiSample.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.ML;
 using Syncfusion.Maui.Toolkit.Hosting;
@@ -31,14 +32,16 @@ namespace MauiSample
             // Register ML services
             builder.Services.AddMauiML(config =>
             {
+                config.UseTransientService = false;
                 config.EnablePerformanceLogging = true;
-                config.MaxConcurrentInferences = 2;
             });
 
 #if DEBUG
             builder.Logging.AddDebug();
             builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
+
+            builder.Services.AddSingleton<IMedicalNlpService, MedicalNlpService>();
 
             builder.Services.AddSingleton<ProjectRepository>();
             builder.Services.AddSingleton<TaskRepository>();

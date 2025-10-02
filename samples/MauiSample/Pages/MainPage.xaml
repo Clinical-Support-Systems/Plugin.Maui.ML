@@ -1,13 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <ContentPage
     x:Class="MauiSample.Pages.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:controls="clr-namespace:MauiSample.Pages.Controls"
     xmlns:models="clr-namespace:MauiSample.Models"
     xmlns:pageModels="clr-namespace:MauiSample.PageModels"
-    xmlns:pullToRefresh="clr-namespace:Syncfusion.Maui.Toolkit.PullToRefresh;assembly=Syncfusion.Maui.Toolkit"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Name="OverviewPage"
     Title="{Binding Today}"
@@ -16,100 +14,107 @@
     <ContentPage.Behaviors>
         <toolkit:EventToCommandBehavior
             BindingContext="{Binding Path=BindingContext, Source={x:Reference OverviewPage}, x:DataType=ContentPage}"
-            Command="{Binding NavigatedToCommand}"
-            EventName="NavigatedTo" />
-        <toolkit:EventToCommandBehavior
-            BindingContext="{Binding Path=BindingContext, Source={x:Reference OverviewPage}, x:DataType=ContentPage}"
-            Command="{Binding NavigatedFromCommand}"
-            EventName="NavigatedFrom" />
-        <toolkit:EventToCommandBehavior
-            BindingContext="{Binding Path=BindingContext, Source={x:Reference OverviewPage}, x:DataType=ContentPage}"
             Command="{Binding AppearingCommand}"
             EventName="Appearing" />
     </ContentPage.Behaviors>
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
 
-    <Grid>
-        <pullToRefresh:SfPullToRefresh IsRefreshing="{Binding IsRefreshing}" RefreshCommand="{Binding RefreshCommand}">
-            <pullToRefresh:SfPullToRefresh.PullableContent>
-                <ScrollView>
-                    <VerticalStackLayout Padding="{StaticResource LayoutPadding}"
-                                         Spacing="{StaticResource LayoutSpacing}">
-                        <!--  ML Q&A Section  -->
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
+                Text="Medical Entity Extraction" />
+
+            <Label
+                FontSize="14"
+                Text="{Binding MedicalStatus}"
+                TextColor="Gray" />
+
+            <!--  Show loading indicators for general model and medical NLP initialization  -->
+            <Grid
+                ColumnDefinitions="Auto,*"
+                ColumnSpacing="8"
+                IsVisible="{Binding IsModelLoading}"
+                RowDefinitions="Auto,Auto">
+                <ActivityIndicator Grid.RowSpan="2" IsRunning="True" />
+                <Label
+                    Grid.Column="1"
+                    FontSize="12"
+                    Text="Loading general model..."
+                    VerticalOptions="Center" />
+            </Grid>
+            <Grid
+                ColumnDefinitions="Auto,*"
+                ColumnSpacing="8"
+                IsVisible="{Binding IsMedicalNlpLoading}"
+                RowDefinitions="Auto,Auto">
+                <ActivityIndicator Grid.RowSpan="2" IsRunning="True" />
+                <Label
+                    Grid.Column="1"
+                    FontSize="12"
+                    Text="Preparing medical NLP model..."
+                    VerticalOptions="Center" />
+            </Grid>
+
+            <Editor
+                AutoSize="TextChanges"
+                HeightRequest="120"
+                Placeholder="Enter medical text from transcription..."
+                Text="{Binding MedicalText}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button
+                    Grid.Column="0"
+                    Command="{Binding ExtractMedicalEntitiesCommand}"
+                    Text="Extract Entities" />
+                <Button
+                    Grid.Column="1"
+                    BackgroundColor="LightGray"
+                    Command="{Binding TestMedicalSampleCommand}"
+                    Text="Test Sample" />
+            </Grid>
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Label
+                Margin="0,10,0,0"
+                FontAttributes="Bold"
+                FontSize="18"
+                IsVisible="{Binding ExtractedEntities.Count}"
+                Text="Extracted Entities:" />
+
+            <CollectionView ItemsSource="{Binding ExtractedEntities}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:MedicalEntity">
                         <Border
-                            Padding="12"
-                            BackgroundColor="{AppThemeBinding Light=#1E1E1E,
-                            Dark=#2C2C2C}"
-                            Stroke="{AppThemeBinding Light=#333,
-                            Dark=#444}"
-                            StrokeShape="RoundRectangle 12"
-                            StrokeThickness="1">
-                            <VerticalStackLayout Spacing="8">
-                                <Label Style="{StaticResource Title2}" Text="Ask the Model" />
-                                <Entry Placeholder="Type your question" Text="{Binding Question}" />
-                                <Button
-                                    Command="{Binding AskQuestionCommand}"
-                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
-                                    Text="Ask" />
-                                <Label LineBreakMode="WordWrap" Text="{Binding Answer}" />
-                            </VerticalStackLayout>
+                            Margin="0,5"
+                            Padding="10"
+                            Stroke="LightGray">
+                            <StackLayout>
+                                <Label>
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span
+                                                FontAttributes="Bold"
+                                                FontSize="16"
+                                                Text="{Binding EntityType}" />
+                                            <Span Text=": " />
+                                            <Span Text="{Binding Text}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label
+                                    FontSize="12"
+                                    Text="{Binding Confidence, StringFormat='Confidence: {0:P1}'}"
+                                    TextColor="Gray" />
+                            </StackLayout>
                         </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
 
-                        <controls:CategoryChart />
-                        <Label Style="{StaticResource Title2}" Text="Projects" />
-                        <ScrollView Margin="-30,0" Orientation="Horizontal">
-                            <HorizontalStackLayout
-                                Padding="30,0"
-                                BindableLayout.ItemsSource="{Binding Projects}"
-                                Spacing="15">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Project">
-                                        <controls:ProjectCardView WidthRequest="200">
-                                            <controls:ProjectCardView.GestureRecognizers>
-                                                <TapGestureRecognizer
-                                                    Command="{Binding NavigateToProjectCommand, Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, x:DataType=pageModels:MainPageModel}"
-                                                    CommandParameter="{Binding .}" />
-                                            </controls:ProjectCardView.GestureRecognizers>
-                                        </controls:ProjectCardView>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
-                            </HorizontalStackLayout>
-                        </ScrollView>
-                        <Grid HeightRequest="44">
-                            <Label
-                                Style="{StaticResource Title2}"
-                                Text="Tasks"
-                                VerticalOptions="Center" />
-                            <ImageButton
-                                Aspect="Center"
-                                Command="{Binding CleanTasksCommand}"
-                                HeightRequest="44"
-                                HorizontalOptions="End"
-                                IsVisible="{Binding HasCompletedTasks}"
-                                SemanticProperties.Description="Clean tasks"
-                                Source="{StaticResource IconClean}"
-                                VerticalOptions="Center"
-                                WidthRequest="44" />
-                        </Grid>
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Tasks}" Spacing="15">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate>
-                                    <controls:TaskView
-                                        TaskCompletedCommand="{Binding TaskCompletedCommand, Source={RelativeSource AncestorType={x:Type pageModels:MainPageModel}}, x:DataType=pageModels:MainPageModel}" />
-                                </DataTemplate>
-                            </BindableLayout.ItemTemplate>
-                        </VerticalStackLayout>
-                    </VerticalStackLayout>
-                </ScrollView>
-            </pullToRefresh:SfPullToRefresh.PullableContent>
-        </pullToRefresh:SfPullToRefresh>
+        </VerticalStackLayout>
+    </ScrollView>
 
-        <controls:AddButton Command="{Binding AddTaskCommand}"
-                            IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}" />
-    </Grid>
 </ContentPage>

@@ -21,6 +21,7 @@
 		<Nullable>enable</Nullable>
 		<!-- https://github.com/CommunityToolkit/Maui/issues/2205 -->
 		<NoWarn>XC0103</NoWarn>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
 		<!-- Display name -->
@@ -69,6 +70,12 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="11.1.1" />
 		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="8.0.8" />
+		<PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.0-preview.25373.1" />
+		<PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="2.0.0-preview.25373.1" />
+		<PackageReference Include="Roslynator.Analyzers" Version="4.14.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
 		<PackageReference Include="Syncfusion.Maui.Toolkit" Version="1.0.5" />
 	</ItemGroup>
@@ -78,6 +85,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiAsset Update="Resources\Raw\BiomedicalNER.onnx">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </MauiAsset>
+	  <MauiAsset Update="Resources\Raw\SentenceEmbedding.onnx">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </MauiAsset>
 	  <MauiAsset Update="Resources\Raw\t5encoder_Opset17.onnx">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </MauiAsset>
