@@ -16,7 +16,7 @@ public static class MLExtensions
     /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddMauiML(this IServiceCollection services)
     {
-        return services.AddMauiML((Action<MLConfiguration>?)null);
+        return services.AddMauiML(null);
     }
 
     /// <summary>
@@ -90,12 +90,20 @@ public static class MLExtensions
             MLBackend.OnnxRuntime => new OnnxRuntimeInfer(),
             MLBackend.CoreML => throw new NotImplementedException(
                 "Pure CoreML backend is under development. Use OnnxRuntime with CoreML execution provider."),
-            MLBackend.MLKit => throw new NotImplementedException(
-                "ML Kit backend is not yet implemented. Use OnnxRuntime with NNAPI execution provider."),
+            MLBackend.MLKit => CreateMlKitOrThrow(),
             MLBackend.WindowsML => throw new NotImplementedException(
                 "Windows ML backend is not yet implemented. Use OnnxRuntime with DirectML execution provider."),
             _ => MLPlugin.CreatePlatformDefault()
         };
+    }
+
+    private static IMLInfer CreateMlKitOrThrow()
+    {
+#if ANDROID
+        return new Platforms.Android.MLKitInfer();
+#else
+        throw new PlatformNotSupportedException("ML Kit backend is only available on Android.");
+#endif
     }
 }
 

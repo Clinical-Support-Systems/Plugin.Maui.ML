@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<!-- Target .NET 9 platforms (net8 is out of support for MAUI) -->
@@ -92,7 +92,7 @@
 
 	<!-- Platform-specific packages -->
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<!-- Android-specific ML packages can be added here when implementing MLKit -->
+		<PackageReference Include="Xamarin.TensorFlow.Lite" Version="2.16.1.7" />
 	</ItemGroup>
 
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' OR $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
