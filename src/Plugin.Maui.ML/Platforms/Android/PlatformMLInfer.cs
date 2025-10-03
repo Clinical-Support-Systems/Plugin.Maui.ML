@@ -2,15 +2,19 @@ namespace Plugin.Maui.ML.Platforms.Android;
 
 /// <summary>
 ///     Android-specific ML inference implementation
+///     By default uses ONNX Runtime with NNAPI execution provider for hardware acceleration
+///     For TensorFlow Lite models, consider using ML Kit or TFLite directly
 /// </summary>
 public class PlatformMLInfer : OnnxRuntimeInfer
 {
     /// <summary>
     ///     Initializes a new instance of the PlatformMLInfer class for Android
+    ///     Uses ONNX Runtime with NNAPI execution provider by default
     /// </summary>
-    public PlatformMLInfer()
+    public PlatformMLInfer() : base()
     {
-        // Android-specific initialization can be added here
+        // Android-specific initialization
+        // NNAPI execution provider is already configured in OnnxRuntimeInfer
     }
 
     /// <summary>
@@ -26,8 +30,16 @@ public class PlatformMLInfer : OnnxRuntimeInfer
 
         try
         {
-            // This would use Android.App.Application.Context.Assets.Open(assetName)
-            // For now, fallback to base implementation
+#if ANDROID
+            // Try to use Android Assets API
+            if (global::Android.App.Application.Context?.Assets != null)
+            {
+                using var assetStream = global::Android.App.Application.Context.Assets.Open(assetName);
+                await LoadModelAsync(assetStream, cancellationToken);
+                return;
+            }
+#endif
+            // Fallback to base implementation
             await LoadModelFromAssetAsync(assetName, cancellationToken);
         }
         catch (Exception ex)
@@ -51,5 +63,18 @@ public class PlatformMLInfer : OnnxRuntimeInfer
         };
 
         return providers;
+    }
+
+    /// <summary>
+    ///     Check if NNAPI is available on this Android device
+    /// </summary>
+    /// <returns>True if NNAPI is available (Android 8.1+)</returns>
+    public static bool IsNnapiAvailable()
+    {
+#if ANDROID
+        return global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.O;
+#else
+        return false;
+#endif
     }
 }

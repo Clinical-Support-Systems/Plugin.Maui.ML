@@ -4,15 +4,18 @@ namespace Plugin.Maui.ML.Platforms.Windows;
 
 /// <summary>
 ///     Windows-specific ML inference implementation
+///     By default uses ONNX Runtime with DirectML execution provider for GPU acceleration
 /// </summary>
 public class PlatformMLInfer : OnnxRuntimeInfer
 {
     /// <summary>
     ///     Initializes a new instance of the PlatformMLInfer class for Windows
+    ///     Uses ONNX Runtime with DirectML execution provider by default
     /// </summary>
-    public PlatformMLInfer()
+    public PlatformMLInfer() : base()
     {
-        // Windows-specific initialization can be added here
+        // Windows-specific initialization
+        // DirectML execution provider is already configured in OnnxRuntimeInfer
     }
 
     /// <summary>
@@ -28,8 +31,17 @@ public class PlatformMLInfer : OnnxRuntimeInfer
 
         try
         {
-            // This would use Windows.ApplicationModel.Package.Current.InstalledLocation
-            // For now, fallback to base implementation
+#if WINDOWS
+            // Try to use Windows Package API
+            var installedLocation = global::Windows.ApplicationModel.Package.Current.InstalledLocation;
+            var file = await installedLocation.GetFileAsync(packagePath);
+            if (file != null)
+            {
+                await LoadModelAsync(file.Path, cancellationToken);
+                return;
+            }
+#endif
+            // Fallback to base implementation
             await LoadModelFromAssetAsync(packagePath, cancellationToken);
         }
         catch (Exception ex)
@@ -91,7 +103,8 @@ public class PlatformMLInfer : OnnxRuntimeInfer
             ["Is64BitProcess"] = Environment.Is64BitProcess,
             ["Is64BitOperatingSystem"] = Environment.Is64BitOperatingSystem,
             ["WorkingSet"] = Environment.WorkingSet,
-            ["Architecture"] = RuntimeInformation.ProcessArchitecture.ToString()
+            ["Architecture"] = RuntimeInformation.ProcessArchitecture.ToString(),
+            ["DirectML"] = IsDirectX12Available()
         };
 
         return info;

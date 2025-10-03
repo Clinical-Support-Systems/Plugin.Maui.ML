@@ -23,6 +23,11 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
     }
 
     /// <summary>
+    ///     Gets the backend type - ONNX Runtime
+    /// </summary>
+    public MLBackend Backend => MLBackend.OnnxRuntime;
+
+    /// <summary>
     ///     Releases resources used by the OnnxRuntimeInfer instance.
     /// </summary>
     public void Dispose()

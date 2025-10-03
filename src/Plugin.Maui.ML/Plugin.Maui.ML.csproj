@@ -1,26 +1,80 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<!-- Target .NET 9 platforms (net8 is out of support for MAUI) -->
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst;net9.0</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
+		<SingleProject>true</SingleProject>
+		<UseMaui>true</UseMaui>
 
 		<!-- Package Information -->
 		<PackageId>Plugin.Maui.ML</PackageId>
 		<PackageVersion>1.0.0</PackageVersion>
 		<Authors>Clinical Support Systems</Authors>
-		<Description>A .NET MAUI plugin that provides ONNX runtime inference capabilities with Git LFS support for ML model files</Description>
+		<Description>A .NET MAUI plugin that provides ML inference with multiple backends: ONNX Runtime, CoreML (iOS/macOS), and platform-native acceleration</Description>
 		<PackageProjectUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</RepositoryUrl>
-		<PackageTags>maui;ml;onnx;inference;plugin</PackageTags>
+		<PackageTags>maui;ml;onnx;inference;plugin;coreml;mlkit;tensorflow;machinelearning</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<IsPackable>True</IsPackable>
 
 		<!-- Build Configuration -->
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+		<!-- Platform Support -->
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19041.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
+
+	<!-- Android-specific files -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-android')) != true">
+		<Compile Remove="**\*.Android.cs" />
+		<None Include="**\*.Android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\Android\**\*.cs" />
+		<None Include="**\Android\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
+
+	<!-- iOS-specific files -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-ios')) != true">
+		<Compile Remove="**\*.iOS.cs" />
+		<None Include="**\*.iOS.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\iOS\**\*.cs" />
+		<None Include="**\iOS\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
+
+	<!-- MacCatalyst-specific files -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-maccatalyst')) != true">
+		<Compile Remove="**\*.MacCatalyst.cs" />
+		<None Include="**\*.MacCatalyst.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\MacCatalyst\**\*.cs" />
+		<None Include="**\MacCatalyst\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
+
+	<!-- Windows-specific files -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
+		<Compile Remove="**\*.Windows.cs" />
+		<None Include="**\*.Windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+		<Compile Remove="**\Windows\**\*.cs" />
+		<None Include="**\Windows\**\*.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
+
+	<!-- .NET (generic) - Exclude for non-base frameworks -->
+	<ItemGroup Condition="!($(TargetFramework.StartsWith('net')) == true AND $(TargetFramework.EndsWith('.0')) == true AND $(TargetFramework.Contains('-')) != true)">
+		<Compile Remove="**\*.net.cs" />
+		<None Include="**\*.net.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 
 	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
 		<PackageReference Include="Roslynator.Analyzers" Version="4.14.0">
@@ -30,9 +84,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.1" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.*" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.110" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.110" />
+	</ItemGroup>
 
+	<!-- Platform-specific packages -->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<!-- Android-specific ML packages can be added here when implementing MLKit -->
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' OR $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+		<!-- iOS/macOS-specific packages for CoreML are part of the framework -->
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+		<!-- Windows-specific packages for DirectML/Windows ML can be added here -->
+	</ItemGroup>
+
+	<!-- Package additions -->
+	<ItemGroup>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 </Project>

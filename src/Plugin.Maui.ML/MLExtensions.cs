@@ -10,13 +10,13 @@ namespace Plugin.Maui.ML;
 public static class MLExtensions
 {
     /// <summary>
-    ///     Adds ML inference services to the service collection
+    ///     Adds ML inference services to the service collection using platform defaults
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <returns>The service collection for chaining</returns>
     public static IServiceCollection AddMauiML(this IServiceCollection services)
     {
-        return services.AddMauiML(null);
+        return services.AddMauiML((Action<MLConfiguration>?)null);
     }
 
     /// <summary>
@@ -30,19 +30,31 @@ public static class MLExtensions
         var config = new MLConfiguration();
         configure?.Invoke(config);
 
-        // Register the ML inference service
+        // Register the ML inference service based on configuration
         if (config.UseTransientService)
         {
-            services.TryAddTransient<IMLInfer, OnnxRuntimeInfer>();
+            services.TryAddTransient<IMLInfer>(_ => CreateMLInfer(config.PreferredBackend));
         }
         else
         {
-            services.TryAddSingleton<IMLInfer, OnnxRuntimeInfer>();
+            services.TryAddSingleton<IMLInfer>(_ => CreateMLInfer(config.PreferredBackend));
         }
 
         // Register configuration
         services.TryAddSingleton(config);
 
+        return services;
+    }
+
+    /// <summary>
+    ///     Adds ML inference services with explicit backend selection
+    /// </summary>
+    /// <param name="services">The service collection</param>
+    /// <param name="backend">The ML backend to use</param>
+    /// <returns>The service collection for chaining</returns>
+    public static IServiceCollection AddMauiML(this IServiceCollection services, MLBackend backend)
+    {
+        services.TryAddSingleton<IMLInfer>(_ => CreateMLInfer(backend));
         return services;
     }
 
@@ -63,6 +75,27 @@ public static class MLExtensions
     {
         services.AddSingleton<INlpModelConfigProvider, TProvider>();
         return services;
+    }
+
+    private static IMLInfer CreateMLInfer(MLBackend? backend)
+    {
+        // If no backend specified, use platform default
+        if (!backend.HasValue)
+        {
+            return MLPlugin.CreatePlatformDefault();
+        }
+
+        return backend.Value switch
+        {
+            MLBackend.OnnxRuntime => new OnnxRuntimeInfer(),
+            MLBackend.CoreML => throw new NotImplementedException(
+                "Pure CoreML backend is under development. Use OnnxRuntime with CoreML execution provider."),
+            MLBackend.MLKit => throw new NotImplementedException(
+                "ML Kit backend is not yet implemented. Use OnnxRuntime with NNAPI execution provider."),
+            MLBackend.WindowsML => throw new NotImplementedException(
+                "Windows ML backend is not yet implemented. Use OnnxRuntime with DirectML execution provider."),
+            _ => MLPlugin.CreatePlatformDefault()
+        };
     }
 }
 
@@ -90,4 +123,9 @@ public class MLConfiguration
     ///     Gets or sets the maximum number of concurrent inference operations
     /// </summary>
     public int MaxConcurrentInferences { get; set; } = Environment.ProcessorCount;
+
+    /// <summary>
+    ///     Gets or sets the preferred ML backend (null = platform default)
+    /// </summary>
+    public MLBackend? PreferredBackend { get; set; }
 }

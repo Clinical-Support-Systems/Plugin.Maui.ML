@@ -2,15 +2,19 @@ namespace Plugin.Maui.ML.Platforms.iOS;
 
 /// <summary>
 ///     iOS-specific ML inference implementation
+///     By default uses ONNX Runtime with CoreML execution provider for best compatibility
+///     For pure CoreML models, use CoreMLInfer directly
 /// </summary>
 public class PlatformMLInfer : OnnxRuntimeInfer
 {
     /// <summary>
     ///     Initializes a new instance of the PlatformMLInfer class for iOS
+    ///     Uses ONNX Runtime with CoreML execution provider by default
     /// </summary>
-    public PlatformMLInfer()
+    public PlatformMLInfer() : base()
     {
-        // iOS-specific initialization can be added here
+        // iOS-specific initialization
+        // CoreML execution provider is already configured in OnnxRuntimeInfer
     }
 
     /// <summary>
@@ -28,8 +32,16 @@ public class PlatformMLInfer : OnnxRuntimeInfer
 
         try
         {
-            // This would use NSBundle.MainBundle.PathForResource(resourceName, resourceExtension)
-            // For now, fallback to base implementation
+#if IOS || MACCATALYST
+            // Try to use NSBundle for iOS
+            var assetPath = Foundation.NSBundle.MainBundle.PathForResource(resourceName, resourceExtension);
+            if (!string.IsNullOrEmpty(assetPath))
+            {
+                await LoadModelAsync(assetPath, cancellationToken);
+                return;
+            }
+#endif
+            // Fallback to base implementation
             var assetName = $"{resourceName}.{resourceExtension}";
             await LoadModelFromAssetAsync(assetName, cancellationToken);
         }

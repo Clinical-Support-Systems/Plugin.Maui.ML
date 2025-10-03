@@ -4,34 +4,39 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 namespace Plugin.Maui.ML;
 
 /// <summary>
-///     Interface for ML inference operations using ONNX runtime.
-///     Supports float input tensors or Int64 (token id) input tensors.
+///     Interface for ML inference operations.
+///     Supports multiple backends: ONNX Runtime, CoreML, ML Kit, Windows ML.
 /// </summary>
 public interface IMLInfer
 {
+    /// <summary>
+    ///     The backend implementation being used
+    /// </summary>
+    MLBackend Backend { get; }
+
     /// <summary>
     ///     Check if a model is currently loaded
     /// </summary>
     bool IsModelLoaded { get; }
 
     /// <summary>
-    ///     Load an ONNX model from a file path
+    ///     Load a model from a file path
     /// </summary>
-    /// <param name="modelPath">Path to the ONNX model file</param>
+    /// <param name="modelPath">Path to the model file</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task that completes when the model is loaded</returns>
     Task LoadModelAsync(string modelPath, CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     Load an ONNX model from a stream
+    ///     Load a model from a stream
     /// </summary>
-    /// <param name="modelStream">Stream containing the ONNX model</param>
+    /// <param name="modelStream">Stream containing the model</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task that completes when the model is loaded</returns>
     Task LoadModelAsync(Stream modelStream, CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     Load an ONNX model from MAUI assets
+    ///     Load a model from MAUI assets
     /// </summary>
     /// <param name="assetName">Name of the asset file</param>
     /// <param name="cancellationToken">Cancellation token</param>
