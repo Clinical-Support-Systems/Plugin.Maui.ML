@@ -13,7 +13,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     ///     Initializes a new instance of the PlatformMLInfer class for macOS Catalyst
     ///     Uses ONNX Runtime with CoreML execution provider by default
     /// </summary>
-    public PlatformMLInfer() : base()
+    public PlatformMLInfer()
     {
         // macOS Catalyst-specific initialization
         // CoreML execution provider is already configured in OnnxRuntimeInfer

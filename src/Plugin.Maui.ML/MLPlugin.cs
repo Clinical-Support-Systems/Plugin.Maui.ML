@@ -5,20 +5,20 @@ namespace Plugin.Maui.ML;
 /// </summary>
 public static class MLPlugin
 {
-    static IMLInfer? defaultImplementation;
+    private static IMLInfer? _defaultImplementation;
 
     /// <summary>
     ///     Gets the default implementation of <see cref="IMLInfer"/>
     ///     Uses platform-specific implementation when available, falls back to ONNX Runtime
     /// </summary>
     public static IMLInfer Default =>
-        defaultImplementation ??= CreatePlatformDefault();
+        _defaultImplementation ??= CreatePlatformDefault();
 
     /// <summary>
     ///     Sets the default implementation (useful for testing or custom implementations)
     /// </summary>
     internal static void SetDefault(IMLInfer? implementation) =>
-        defaultImplementation = implementation;
+        _defaultImplementation = implementation;
 
     /// <summary>
     ///     Creates a new platform-specific implementation instance

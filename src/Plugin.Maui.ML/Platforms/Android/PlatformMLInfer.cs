@@ -11,7 +11,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     ///     Initializes a new instance of the PlatformMLInfer class for Android
     ///     Uses ONNX Runtime with NNAPI execution provider by default
     /// </summary>
-    public PlatformMLInfer() : base()
+    public PlatformMLInfer()
     {
         // Android-specific initialization
         // NNAPI execution provider is already configured in OnnxRuntimeInfer
@@ -32,9 +32,9 @@ public class PlatformMLInfer : OnnxRuntimeInfer
         {
 #if ANDROID
             // Try to use Android Assets API
-            if (global::Android.App.Application.Context?.Assets != null)
+            if (global::Android.App.Application.Context.Assets != null)
             {
-                using var assetStream = global::Android.App.Application.Context.Assets.Open(assetName);
+                await using var assetStream = global::Android.App.Application.Context.Assets.Open(assetName);
                 await LoadModelAsync(assetStream, cancellationToken);
                 return;
             }

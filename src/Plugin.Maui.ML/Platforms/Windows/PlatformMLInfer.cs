@@ -12,7 +12,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     ///     Initializes a new instance of the PlatformMLInfer class for Windows
     ///     Uses ONNX Runtime with DirectML execution provider by default
     /// </summary>
-    public PlatformMLInfer() : base()
+    public PlatformMLInfer()
     {
         // Windows-specific initialization
         // DirectML execution provider is already configured in OnnxRuntimeInfer

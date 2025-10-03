@@ -8,7 +8,7 @@ namespace Plugin.Maui.ML;
 /// </summary>
 public class OnnxRuntimeInfer : IMLInfer, IDisposable
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private bool _disposed;
     private InferenceSession? _session;
     private SessionOptions? _sessionOptions;

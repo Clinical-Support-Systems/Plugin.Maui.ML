@@ -11,7 +11,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     ///     Initializes a new instance of the PlatformMLInfer class for iOS
     ///     Uses ONNX Runtime with CoreML execution provider by default
     /// </summary>
-    public PlatformMLInfer() : base()
+    public PlatformMLInfer()
     {
         // iOS-specific initialization
         // CoreML execution provider is already configured in OnnxRuntimeInfer
