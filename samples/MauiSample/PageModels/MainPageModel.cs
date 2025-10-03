@@ -85,7 +85,7 @@ namespace MauiSample.PageModels
         }
 
         [RelayCommand]
-        private async Task Refresh()
+        private Task Refresh()
         {
             try
             {
@@ -99,6 +99,8 @@ namespace MauiSample.PageModels
             {
                 IsRefreshing = false;
             }
+
+            return Task.CompletedTask;
         }
 
         [RelayCommand]
