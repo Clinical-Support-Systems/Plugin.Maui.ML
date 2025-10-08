@@ -142,6 +142,30 @@ public class MainPage : ContentPage
 }
 ```
 
+## Getting ONNX Models
+
+Before using Plugin.Maui.ML, you'll need ONNX model files. You can:
+
+1. **Download pre-converted ONNX models** from Hugging Face Model Hub
+2. **Convert existing models** (PyTorch, TensorFlow, etc.) to ONNX format
+
+We provide the **HFOnnxTool** to make this easy:
+
+```bash
+# Download a model that already has ONNX files
+cd tools/HFOnnxTool
+dotnet run -- fetch --repo sentence-transformers/all-MiniLM-L6-v2 --output ./models
+
+# Or convert a model to ONNX format
+dotnet run -- convert --repo d4data/biomedical-ner-all --task token-classification --output ./onnx
+```
+
+📖 **See the [HFOnnxTool Guide](docs/HFONNX_TOOL_GUIDE.md) for detailed instructions on:**
+- Using the `inspect`, `fetch`, and `convert` commands
+- Working with specific models like biomedical NER and sentence transformers
+- Python setup for model conversion
+- Troubleshooting common issues
+
 ## Backend Support
 
 ### Available Backends
@@ -348,6 +372,7 @@ Console.WriteLine($"Inference took: {sw.ElapsedMilliseconds}ms");
 ## Documentation
 
 - [Platform Backend Guide](docs/PLATFORM_BACKENDS.md) - Detailed guide on backends and model conversion
+- [HFOnnxTool Guide](docs/HFONNX_TOOL_GUIDE.md) - Guide for downloading and converting Hugging Face models to ONNX
 - [API Reference](#api-reference) - Complete API documentation
 - [Examples](samples/) - Sample code and applications
 
