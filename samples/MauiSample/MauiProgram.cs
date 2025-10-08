@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui;
-using MauiSample.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.ML;
 using Plugin.Maui.ML.Configuration;
@@ -16,7 +15,10 @@ namespace MauiSample
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .ConfigureSyncfusionToolkit()
+                // ReSharper disable once UnusedParameter.Local
+#pragma warning disable RCS1163
                 .ConfigureMauiHandlers(handlers =>
+#pragma warning restore RCS1163
                 {
 #if IOS || MACCATALYST
                     handlers.AddHandler<Microsoft.Maui.Controls.CollectionView, Microsoft.Maui.Controls.Handlers.Items2.CollectionViewHandler2>();

@@ -5,8 +5,6 @@ VisualStudioVersion = 18.0.11018.127
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugin.Maui.ML", "src\Plugin.Maui.ML\Plugin.Maui.ML.csproj", "{A1B2C3D4-E5F6-7890-1234-567890ABCDEF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "samples\ConsoleApp\ConsoleApp.csproj", "{FB672884-7B7C-0400-4AAB-9765109F286F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugin.Maui.ML.Tests", "tests\Plugin.Maui.ML.Tests\Plugin.Maui.ML.Tests.csproj", "{6CE0C3DA-A743-5585-03F1-C5C367E3C79F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiSample", "samples\MauiSample\MauiSample.csproj", "{5633259E-CAD1-4056-9187-1F8D9BC9F3FE}"
@@ -18,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HFOnnxTool", "tools\HFOnnxTool\HFOnnxTool.csproj", "{402BC2B0-322C-C862-99DD-9BE809CFC11E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,10 +28,6 @@ Global
 		{A1B2C3D4-E5F6-7890-1234-567890ABCDEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-7890-1234-567890ABCDEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-7890-1234-567890ABCDEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB672884-7B7C-0400-4AAB-9765109F286F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB672884-7B7C-0400-4AAB-9765109F286F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB672884-7B7C-0400-4AAB-9765109F286F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB672884-7B7C-0400-4AAB-9765109F286F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6CE0C3DA-A743-5585-03F1-C5C367E3C79F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6CE0C3DA-A743-5585-03F1-C5C367E3C79F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CE0C3DA-A743-5585-03F1-C5C367E3C79F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -41,6 +37,10 @@ Global
 		{5633259E-CAD1-4056-9187-1F8D9BC9F3FE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{5633259E-CAD1-4056-9187-1F8D9BC9F3FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5633259E-CAD1-4056-9187-1F8D9BC9F3FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{402BC2B0-322C-C862-99DD-9BE809CFC11E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{402BC2B0-322C-C862-99DD-9BE809CFC11E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{402BC2B0-322C-C862-99DD-9BE809CFC11E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{402BC2B0-322C-C862-99DD-9BE809CFC11E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
