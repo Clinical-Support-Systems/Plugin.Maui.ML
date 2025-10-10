@@ -5,7 +5,7 @@ A comprehensive .NET MAUI plugin that provides ML inference capabilities with su
 ![Example](example.gif)
 
 [![NuGet Version](https://img.shields.io/nuget/v/Plugin.Maui.ML.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.Maui.ML/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/Clinical-Support-Systems/Plugin.Maui.ML/dotnet.yml?branch=main&style=flat-square)](#)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/clinical-support-systems/plugin.maui.ml/publish.yml?style=flat-square&label=Build%20status&link=https%3A%2F%2Fgithub.com%2FClinical-Support-Systems%2FPlugin.Maui.ML%2Factions%2Fworkflows%2Fpublish.yml)
 
 ## Architecture
 
