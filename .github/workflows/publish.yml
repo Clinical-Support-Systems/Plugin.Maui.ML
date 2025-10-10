@@ -106,7 +106,7 @@ jobs:
         with:
           global-json-file: 'global.json'
       - name: Run tests
-        run: dotnet test test/Plugin.Maui.ML.Tests/Plugin.Maui.ML.Tests.csproj --configuration Release --filter 'FullyQualifiedName!~TestBase'
+        run: dotnet test tests/Plugin.Maui.ML.Tests/Plugin.Maui.ML.Tests.csproj --configuration Release --filter 'FullyQualifiedName!~TestBase'
 
   deploy:
     if: github.event_name == 'release'
