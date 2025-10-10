@@ -72,8 +72,12 @@ jobs:
             $version = minver --auto-increment minor --build-metadata build --verbosity trace
             echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
             echo "version=$version" >> $env:GITHUB_OUTPUT
+      
+      - name: Build
+        run: dotnet build src/Plugin.Maui.ML/Plugin.Maui.ML.csproj --configuration Release -p:Version=${{ env.PACKAGE_VERSION }}
 
-      - run: dotnet pack src/Plugin.Maui.ML/Plugin.Maui.ML.csproj --configuration Release --output ${{ env.NuGetDirectory }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:Version=${{ env.PACKAGE_VERSION }}
+      - name: Pack
+        run: dotnet pack src/Plugin.Maui.ML/Plugin.Maui.ML.csproj --configuration Release --output ${{ env.NuGetDirectory }} --no-build -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:Version=${{ env.PACKAGE_VERSION }}
       
       - name: Prepare Artifacts
         run: |
