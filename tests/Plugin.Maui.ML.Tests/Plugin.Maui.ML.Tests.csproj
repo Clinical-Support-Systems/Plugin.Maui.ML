@@ -29,10 +29,10 @@
 
   <!-- Link the sample ONNX model into the test output for runtime inference tests -->
   <ItemGroup>
-    <Content Include="..\..\samples\MauiSample\Resources\raw\t5encoder_Opset17.onnx">
+    <None Include="..\..\samples\MauiSample\Resources\raw\t5encoder_Opset17.onnx">
       <Link>t5encoder_Opset17.onnx</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

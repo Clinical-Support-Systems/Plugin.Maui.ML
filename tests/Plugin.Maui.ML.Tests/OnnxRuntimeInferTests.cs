@@ -34,7 +34,7 @@ public class OnnxRuntimeInferTests
         Assert.False(infer.IsModelLoaded);
     }
 
-    [Fact]
+    [ConditionalFact(nameof(IsModelAvailable))]
     public async Task LoadModelAsync_SucceedsAndSetsIsModelLoaded()
     {
         using var infer = new OnnxRuntimeInfer();
@@ -152,7 +152,7 @@ public class OnnxRuntimeInferTests
         infer.Dispose();
     }
 
-    [Fact]
+    [ConditionalFact(nameof(IsModelAvailable))]
     public async Task AfterLoad_MetadataAvailable()
     {
         using var infer = new OnnxRuntimeInfer();
@@ -173,7 +173,7 @@ public class OnnxRuntimeInferTests
         return dim;
     }
 
-    [Fact]
+    [ConditionalFact(nameof(IsModelAvailable))]
     public async Task RunInferenceLongInputsAsync_Succeeds()
     {
         using var infer = new OnnxRuntimeInfer();
@@ -195,7 +195,12 @@ public class OnnxRuntimeInferTests
         Assert.NotEmpty(result);
     }
 
-    [Fact]
+    private static bool IsModelAvailable()
+    {
+        return File.Exists(GetModelPath());
+    }
+
+    [ConditionalFact(nameof(IsModelAvailable))]
     public async Task RunInferenceAsync_FloatInputs_CastsOutputsIfNeeded()
     {
         using var infer = new OnnxRuntimeInfer();
@@ -225,7 +230,7 @@ public class OnnxRuntimeInferTests
         }
     }
 
-    [Fact]
+    [ConditionalFact(nameof(IsModelAvailable))]
     public async Task UnloadModel_AfterLoad_ModelDisposed()
     {
         using var infer = new OnnxRuntimeInfer();
