@@ -1,4 +1,5 @@
-﻿# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+﻿# file: .github/workflows/publish.yml
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
 name: publish
 on:
@@ -43,16 +44,43 @@ jobs:
         with:
           fetch-depth: 0
           show-progress: false
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Setup MSBuild path
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: 'latest'
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: 'global.json'
-      - run: dotnet pack src/Plugin.Maui.ML/Plugin.Maui.ML.csproj --configuration Release --output ${{ env.NuGetDirectory }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:MinVerTag=$(git describe --tags)
+      
+      - name: Install MAUI workloads
+        run: dotnet workload install maui-android maui-ios maui-maccatalyst
+
+      - name: Determine Version
+        id: minver
+        run: |
+            dotnet tool install --global minver-cli
+            git fetch --tags
+            git tag
+            $version = minver --auto-increment minor --build-metadata build --verbosity trace
+            echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
+            echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - run: dotnet pack src/Plugin.Maui.ML/Plugin.Maui.ML.csproj --configuration Release --output ${{ env.NuGetDirectory }} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -p:Version=${{ env.PACKAGE_VERSION }}
+      
       - name: Prepare Artifacts
         run: |
           mkdir -p ${{ env.NuGetDirectory }}/artifacts
           cp ${{ env.NuGetDirectory }}/*.nupkg ${{ env.NuGetDirectory }}/artifacts
           cp ${{ env.NuGetDirectory }}/*.snupkg ${{ env.NuGetDirectory }}/artifacts
+      
       - uses: actions/upload-artifact@v4
         with:
           name: nuget
@@ -83,7 +111,7 @@ jobs:
   deploy:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
-    needs: [ run_tests ]
+    needs: [ create_nuget, run_tests ]
     permissions:
       id-token: write  # enable GitHub OIDC token issuance for this job
     steps:
