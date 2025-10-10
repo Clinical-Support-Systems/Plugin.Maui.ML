@@ -4,8 +4,20 @@ using Xunit;
 
 namespace Plugin.Maui.ML.Tests;
 
+/// <summary>
+///     Contains unit tests for the OnnxRuntimeInfer class, verifying model loading, inference execution, metadata
+///     retrieval, and resource management behaviors.
+/// </summary>
+/// <remarks>
+///     These tests ensure that OnnxRuntimeInfer correctly handles valid and invalid input scenarios, throws
+///     appropriate exceptions, and manages model lifecycle operations. The test suite covers asynchronous and synchronous
+///     methods, including edge cases such as null or empty parameters, repeated disposal, and inference with various input
+///     types.
+/// </remarks>
 public class OnnxRuntimeInferTests
 {
+    private static readonly float[] Memory = [1f];
+
     private static string GetModelPath()
     {
         return Path.Combine(AppContext.BaseDirectory, "t5encoder_Opset17.onnx");
@@ -81,7 +93,7 @@ public class OnnxRuntimeInferTests
         using var infer = new OnnxRuntimeInfer();
         var inputs = new Dictionary<string, Tensor<float>>
         {
-            ["input_ids"] = new DenseTensor<float>(new[] { 1f }, new[] { 1 })
+            ["input_ids"] = new DenseTensor<float>(Memory, [1])
         };
         await Assert.ThrowsAsync<InvalidOperationException>(() => infer.RunInferenceAsync(inputs));
     }
@@ -170,8 +182,8 @@ public class OnnxRuntimeInferTests
         var inputIdsName = metadata.Keys.First(k => k.Contains("input_ids"));
         var attentionMaskName = metadata.Keys.First(k => k.Contains("attention_mask"));
         var seqLen = GetSeqLenFromMetadata(metadata, inputIdsName);
-        var inputIds = new DenseTensor<long>(new[] { 1, seqLen });
-        var attention = new DenseTensor<long>(new[] { 1, seqLen });
+        var inputIds = new DenseTensor<long>([1, seqLen]);
+        var attention = new DenseTensor<long>([1, seqLen]);
         inputIds[0, 0] = 0; // first token
         attention[0, 0] = 1;
         var dict = new Dictionary<string, Tensor<long>>
@@ -191,13 +203,21 @@ public class OnnxRuntimeInferTests
         var metadata = infer.GetInputMetadata();
         var floatableInputName = metadata.Keys.First(k => k.Contains("input_ids"));
         var seqLen = GetSeqLenFromMetadata(metadata, floatableInputName);
-        var tensor = new DenseTensor<float>(new[] { 1, seqLen });
-        tensor[0, 0] = 0f;
-        var dict = new Dictionary<string, Tensor<float>> { { floatableInputName, tensor } };
+        var tensor = new DenseTensor<float>([1, seqLen])
+        {
+            [0, 0] = 0f
+        };
+        var dict = new Dictionary<string, Tensor<float>>
+        {
+            { floatableInputName, tensor }
+        };
         try
         {
             var outputs = await infer.RunInferenceAsync(dict);
-            foreach (var kv in outputs) Assert.IsType<DenseTensor<float>>(kv.Value);
+            foreach (var kv in outputs)
+            {
+                Assert.IsType<DenseTensor<float>>(kv.Value);
+            }
         }
         catch (Exception ex) when (ex is OnnxRuntimeException)
         {

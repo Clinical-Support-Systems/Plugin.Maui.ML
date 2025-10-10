@@ -2,7 +2,7 @@
 
 A comprehensive .NET MAUI plugin that provides ML inference capabilities with support for multiple backends including ONNX Runtime, CoreML, and platform-native acceleration.
 
-![Example](example.png)
+![Example](example.gif)
 
 [![NuGet Version](https://img.shields.io/nuget/v/Plugin.Maui.ML.svg?style=flat-square)](https://www.nuget.org/packages/Plugin.Maui.ML/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/Clinical-Support-Systems/Plugin.Maui.ML/dotnet.yml?branch=main&style=flat-square)](#)

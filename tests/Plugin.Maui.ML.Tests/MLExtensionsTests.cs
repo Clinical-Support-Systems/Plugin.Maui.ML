@@ -1,9 +1,19 @@
-using Microsoft.Extensions.DependencyInjection;
-using Plugin.Maui.ML.Configuration; // added
+using JetBrains.Annotations;
+using Plugin.Maui.ML.Configuration;
 using Xunit;
 
 namespace Plugin.Maui.ML.Tests;
 
+/// <summary>
+///     Contains unit tests for extension methods that register machine learning services and NLP model configuration
+///     providers in a dependency injection container.
+/// </summary>
+/// <remarks>
+///     These tests verify the correct registration and configuration of ML-related services, including
+///     singleton and transient lifetimes, configuration options, and support for multiple NLP model config providers. The
+///     class is intended for validating the integration of MauiML and NLP model config provider extensions with the
+///     dependency injection system.
+/// </remarks>
 public class MLExtensionsTests
 {
     [Fact]
@@ -110,18 +120,6 @@ public class MLExtensionsTests
         Assert.IsType<OnnxRuntimeInfer>(a);
     }
 
-    private sealed class TestConfigProviderA : INlpModelConfigProvider
-    {
-        public Task<NlpModelConfig?> GetConfigAsync(string modelKey, CancellationToken ct = default)
-            => Task.FromResult<NlpModelConfig?>(new NlpModelConfig { ModelType = "A" });
-    }
-
-    private sealed class TestConfigProviderB : INlpModelConfigProvider
-    {
-        public Task<NlpModelConfig?> GetConfigAsync(string modelKey, CancellationToken ct = default)
-            => Task.FromResult<NlpModelConfig?>(new NlpModelConfig { ModelType = "B" });
-    }
-
     [Fact]
     public void AddNlpModelConfigProvider_RegistersSingletonAndReturnsServices()
     {
@@ -149,5 +147,40 @@ public class MLExtensionsTests
         Assert.IsType<TestConfigProviderA>(all[0]);
         Assert.IsType<TestConfigProviderB>(all[1]);
         Assert.Same(all[1], single);
+    }
+
+    /// <summary>
+    ///     Provides configuration data for NLP models of type "A".
+    /// </summary>
+    /// <remarks>
+    ///     This class implements <see cref="INlpModelConfigProvider" /> to supply model configuration
+    ///     information specific to model type "A". It is intended for use in testing scenarios where a fixed configuration
+    ///     is required.
+    /// </remarks>
+    [UsedImplicitly]
+    private sealed class TestConfigProviderA : INlpModelConfigProvider
+    {
+        public Task<NlpModelConfig?> GetConfigAsync(string modelKey, CancellationToken ct = default)
+        {
+            return Task.FromResult<NlpModelConfig?>(new NlpModelConfig
+            {
+                ModelType = "A"
+            });
+        }
+    }
+
+    /// <summary>
+    ///     Provides configuration data for NLP models of type "B".
+    /// </summary>
+    [UsedImplicitly]
+    private sealed class TestConfigProviderB : INlpModelConfigProvider
+    {
+        public Task<NlpModelConfig?> GetConfigAsync(string modelKey, CancellationToken ct = default)
+        {
+            return Task.FromResult<NlpModelConfig?>(new NlpModelConfig
+            {
+                ModelType = "B"
+            });
+        }
     }
 }

@@ -4,6 +4,16 @@ using Xunit;
 
 namespace Plugin.Maui.ML.Tests;
 
+/// <summary>
+///     Provides unit tests for the TensorHelper class, verifying tensor creation, manipulation, and mathematical
+///     operations
+///     such as normalization and softmax.
+/// </summary>
+/// <remarks>
+///     These tests ensure that TensorHelper methods behave as expected for various input scenarios,
+///     including multidimensional arrays, reshaping, and numerical stability. The tests cover both typical and edge cases
+///     to help maintain reliability and correctness of tensor-related functionality.
+/// </remarks>
 public class TensorHelperTests
 {
     [Fact]
@@ -33,7 +43,7 @@ public class TensorHelperTests
 
         // Assert
         Assert.NotNull(tensor);
-        Assert.Equal(new[] { 2, 2 }, tensor.Dimensions.ToArray());
+        Assert.Equal([2, 2], tensor.Dimensions.ToArray());
         Assert.Equal(4, tensor.Length);
     }
 
@@ -42,7 +52,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var tensor = new DenseTensor<float>(data, [2, 2]);
 
         // Act
         var result = TensorHelper.ToArray(tensor);
@@ -56,7 +66,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var tensor = new DenseTensor<float>(data, [2, 2]);
 
         // Act
         var shapeString = TensorHelper.GetShapeString(tensor);
@@ -70,7 +80,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var tensor = new DenseTensor<float>(data, [2, 2]);
         var newDimensions = new[] { 4, 1 };
 
         // Act
@@ -86,7 +96,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1.0f, 2.0f, 3.0f, 4.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 2, 2 });
+        var tensor = new DenseTensor<float>(data, [2, 2]);
         var newDimensions = new[] { 2, 3 }; // Total size mismatch
 
         // Act & Assert
@@ -98,7 +108,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 0.0f, 10.0f, 20.0f, 30.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 4 });
+        var tensor = new DenseTensor<float>(data, [4]);
 
         // Act
         var normalizedTensor = TensorHelper.Normalize(tensor);
@@ -107,7 +117,7 @@ public class TensorHelperTests
         // Assert
         Assert.Equal(0.0f, normalizedData[0], 0.001f);
         Assert.Equal(1.0f, normalizedData[3], 0.001f);
-        Assert.True(normalizedData.All(x => x >= 0.0f && x <= 1.0f));
+        Assert.True(normalizedData.All(x => x is >= 0.0f and <= 1.0f));
     }
 
     [Fact]
@@ -115,7 +125,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 5.0f, 5.0f, 5.0f, 5.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 4 });
+        var tensor = new DenseTensor<float>(data, [4]);
 
         // Act
         var normalizedTensor = TensorHelper.Normalize(tensor);
@@ -131,7 +141,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1.0f, 2.0f, 3.0f };
-        var tensor = new DenseTensor<float>(data, new[] { 3 });
+        var tensor = new DenseTensor<float>(data, [3]);
 
         // Act
         var softmaxTensor = TensorHelper.Softmax(tensor);
@@ -156,46 +166,38 @@ public class TensorHelperTests
     public void CreateTensor_From3DArray_CreatesTensorCorrectly()
     {
         // Arrange
-        var data3D = new float[,,]
-        {
-            { { 1f, 2f }, { 3f, 4f } },
-            { { 5f, 6f }, { 7f, 8f } }
-        };
+        var data3D = new[,,] { { { 1f, 2f }, { 3f, 4f } }, { { 5f, 6f }, { 7f, 8f } } };
 
         // Act
         var tensor = TensorHelper.CreateTensor(data3D);
         var flat = TensorHelper.ToArray(tensor);
 
         // Assert
-        Assert.Equal(new[] { 2, 2, 2 }, tensor.Dimensions.ToArray());
+        Assert.Equal([2, 2, 2], tensor.Dimensions.ToArray());
         Assert.Equal(8, tensor.Length);
-        Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f }, flat);
+        Assert.Equal([1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f], flat);
     }
 
     [Fact]
     public void CreateTensor_From2DArray_VerifyFlattenOrder()
     {
         // Arrange (2 x 3)
-        var data2D = new float[,]
-        {
-            { 1f, 2f, 3f },
-            { 4f, 5f, 6f }
-        };
+        var data2D = new[,] { { 1f, 2f, 3f }, { 4f, 5f, 6f } };
 
         // Act
         var tensor = TensorHelper.CreateTensor(data2D);
         var flat = TensorHelper.ToArray(tensor);
 
         // Assert
-        Assert.Equal(new[] { 2, 3 }, tensor.Dimensions.ToArray());
-        Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f }, flat);
+        Assert.Equal([2, 3], tensor.Dimensions.ToArray());
+        Assert.Equal([1f, 2f, 3f, 4f, 5f, 6f], flat);
     }
 
     [Fact]
     public void GetShapeString_For3DTensor()
     {
         // Arrange dims 2,2,1
-        var data = new float[,,] { { { 0f }, { 1f } }, { { 2f }, { 3f } } };
+        var data = new[,,] { { { 0f }, { 1f } }, { { 2f }, { 3f } } };
         var tensor = TensorHelper.CreateTensor(data);
 
         // Act
@@ -210,7 +212,7 @@ public class TensorHelperTests
     {
         // Arrange
         var data = new[] { 1000f, 1001f, 1002f };
-        var tensor = new DenseTensor<float>(data, new[] { data.Length });
+        var tensor = new DenseTensor<float>(data, [data.Length]);
 
         // Act
         var softmaxTensor = TensorHelper.Softmax(tensor);
@@ -230,7 +232,7 @@ public class TensorHelperTests
     {
         // Arrange (duplicate min value to ensure stable handling)
         var data = new[] { 5.5f, 7.0f, 6.1f, 9.9f, 5.5f };
-        var tensor = new DenseTensor<float>(data, new[] { data.Length });
+        var tensor = new DenseTensor<float>(data, [data.Length]);
 
         // Act
         var normalized = TensorHelper.Normalize(tensor);
@@ -239,16 +241,17 @@ public class TensorHelperTests
         // Assert endpoints
         var min = data.Min();
         var max = data.Max();
-        for (int i = 0; i < data.Length; i++)
+        for (var i = 0; i < data.Length; i++)
         {
-            if (data[i] == min) Assert.Equal(0f, normalizedData[i], 1e-5);
-            if (data[i] == max) Assert.Equal(1f, normalizedData[i], 1e-5);
+            if (NearlyEqual(data[i], min)) Assert.Equal(0f, normalizedData[i], 1e-5);
+            if (NearlyEqual(data[i], max)) Assert.Equal(1f, normalizedData[i], 1e-5);
         }
+
         Assert.All(normalizedData, v => Assert.InRange(v, 0f, 1f));
         // Monotonic ordering for distinct values
-        for (int i = 0; i < data.Length; i++)
+        for (var i = 0; i < data.Length; i++)
         {
-            for (int j = 0; j < data.Length; j++)
+            for (var j = 0; j < data.Length; j++)
             {
                 if (data[i] < data[j])
                 {
@@ -258,15 +261,39 @@ public class TensorHelperTests
         }
     }
 
+    /// <summary>
+    ///     Determines whether two single-precision floating-point values are nearly equal within specified relative and
+    ///     absolute tolerances.
+    /// </summary>
+    /// <remarks>
+    ///     This method is useful for comparing floating-point values where exact equality is unreliable
+    ///     due to rounding errors.
+    /// </remarks>
+    /// <param name="a">The first value to compare.</param>
+    /// <param name="b">The second value to compare.</param>
+    /// <param name="rtol">
+    ///     The relative tolerance. Specifies the maximum allowed difference between the values, relative to their
+    ///     magnitude. Must be non-negative.
+    /// </param>
+    /// <param name="atol">
+    ///     The absolute tolerance. Specifies the minimum threshold for considering the values nearly equal, regardless of
+    ///     their magnitude. Must be non-negative.
+    /// </param>
+    /// <returns>true if the values are nearly equal within the specified tolerances; otherwise, false.</returns>
+    private static bool NearlyEqual(float a, float b, float rtol = 1e-4f, float atol = 1e-6f)
+    {
+        return MathF.Abs(a - b) <= MathF.Max(atol, rtol * MathF.Max(MathF.Abs(a), MathF.Abs(b)));
+    }
+
     [Fact]
     public void Reshape_SameDimensions_ReturnsEquivalentTensor()
     {
         // Arrange
         var data = new[] { 2f, 4f, 6f, 8f };
-        var original = new DenseTensor<float>(data, new[] { 2, 2 });
+        var original = new DenseTensor<float>(data, [2, 2]);
 
         // Act
-        var reshaped = TensorHelper.Reshape(original, new[] { 2, 2 });
+        var reshaped = TensorHelper.Reshape(original, [2, 2]);
 
         // Assert
         Assert.NotSame(original, reshaped); // New tensor instance
