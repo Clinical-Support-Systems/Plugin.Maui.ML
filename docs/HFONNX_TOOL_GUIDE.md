@@ -45,6 +45,18 @@ pip install "optimum[exporters]" onnx onnxruntime transformers
 
 **Note:** The `inspect` and `fetch` commands do NOT require Python. Only use the `convert` command if you need to export a model that doesn't already have ONNX files in its repository.
 
+### Supported Architectures for the Convert Command
+
+Optimum library handles the export of PyTorch models to ONNX in the exporters.onnx module. It provides classes, functions, and a command line interface to perform the export easily.
+
+The complete list of supported architectures from Transformers, Diffusers, Timm & Sentence Transformers is available at the following link:
+
+https://huggingface.co/docs/optimum-onnx/onnx/overview
+
+For any unsupported architecture, detailed instructions for adding support for such architectures can be found here:
+
+https://huggingface.co/docs/optimum-onnx/onnx/usage_guides/contribute
+
 ## Installation
 
 ### Option 1: Build from Source
