@@ -222,12 +222,15 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
     /// <exception cref="InvalidOperationException">
     ///     Thrown if no model is loaded.
     /// </exception>
-    public Dictionary<string, NodeMetadata> GetInputMetadata()
+    public Dictionary<string, MLNodeMetadata> GetInputMetadata()
     {
         if (_session == null) throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
         lock (_lock)
         {
-            return _session.InputMetadata.ToDictionary(k => k.Key, v => v.Value);
+            return _session.InputMetadata.ToDictionary(
+                k => k.Key,
+                v => new MLNodeMetadata(v.Value.ElementType, v.Value.Dimensions, v.Value.SymbolicDimensions)
+            );
         }
     }
 
@@ -240,12 +243,15 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
     /// <exception cref="InvalidOperationException">
     ///     Thrown if no model is loaded.
     /// </exception>
-    public Dictionary<string, NodeMetadata> GetOutputMetadata()
+    public Dictionary<string, MLNodeMetadata> GetOutputMetadata()
     {
         if (_session == null) throw new InvalidOperationException("No model is loaded. Call LoadModelAsync first.");
         lock (_lock)
         {
-            return _session.OutputMetadata.ToDictionary(k => k.Key, v => v.Value);
+            return _session.OutputMetadata.ToDictionary(
+                k => k.Key,
+                v => new MLNodeMetadata(v.Value.ElementType, v.Value.Dimensions, v.Value.SymbolicDimensions)
+            );
         }
     }
 
@@ -345,7 +351,8 @@ public class OnnxRuntimeInfer : IMLInfer, IDisposable
         _sessionOptions.AppendExecutionProvider_Nnapi();
         _sessionOptions.AppendExecutionProvider_CPU();
 #elif IOS || MACCATALYST
-        _sessionOptions.AppendExecutionProvider_CoreML();
+        // DO NOT use CoreML EP on iOS/Mac - it causes Metal queue leaks with NLP models
+        // Users should use the pure CoreMLInfer class for CoreML models instead
         _sessionOptions.AppendExecutionProvider_CPU();
 #elif WINDOWS
         try { _sessionOptions.AppendExecutionProvider_DML(); }

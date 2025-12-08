@@ -88,8 +88,7 @@ public static class MLExtensions
         return backend.Value switch
         {
             MLBackend.OnnxRuntime => new OnnxRuntimeInfer(),
-            MLBackend.CoreML => throw new NotImplementedException(
-                "Pure CoreML backend is under development. Use OnnxRuntime with CoreML execution provider."),
+            MLBackend.CoreML => CreateCoreMLOrThrow(),
             MLBackend.MLKit => CreateMlKitOrThrow(),
             MLBackend.WindowsML => throw new NotImplementedException(
                 "Windows ML backend is not yet implemented. Use OnnxRuntime with DirectML execution provider."),
@@ -105,35 +104,43 @@ public static class MLExtensions
         throw new PlatformNotSupportedException("ML Kit backend is only available on Android.");
 #endif
     }
-}
-
-/// <summary>
-///     Configuration options for ML services
-/// </summary>
-public class MLConfiguration
-{
-    /// <summary>
-    ///     Gets or sets whether to use transient service lifetime (default: false, uses singleton)
-    /// </summary>
-    public bool UseTransientService { get; set; }
+    private static IMLInfer CreateCoreMLOrThrow()
+    {
+#if iOS
+        return new Platforms.iOS.CoreMLInfer();
+#else
+        throw new PlatformNotSupportedException("CoreML backend is only available on Android.");
+#endif
+    }
 
     /// <summary>
-    ///     Gets or sets the default model asset path
+    ///     Configuration options for ML services
     /// </summary>
-    public string? DefaultModelAssetPath { get; set; }
+    public class MLConfiguration
+    {
+        /// <summary>
+        ///     Gets or sets whether to use transient service lifetime (default: false, uses singleton)
+        /// </summary>
+        public bool UseTransientService { get; set; }
 
-    /// <summary>
-    ///     Gets or sets whether to enable performance logging
-    /// </summary>
-    public bool EnablePerformanceLogging { get; set; }
+        /// <summary>
+        ///     Gets or sets the default model asset path
+        /// </summary>
+        public string? DefaultModelAssetPath { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the maximum number of concurrent inference operations
-    /// </summary>
-    public int MaxConcurrentInferences { get; set; } = Environment.ProcessorCount;
+        /// <summary>
+        ///     Gets or sets whether to enable performance logging
+        /// </summary>
+        public bool EnablePerformanceLogging { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the preferred ML backend (null = platform default)
-    /// </summary>
-    public MLBackend? PreferredBackend { get; set; }
+        /// <summary>
+        ///     Gets or sets the maximum number of concurrent inference operations
+        /// </summary>
+        public int MaxConcurrentInferences { get; set; } = Environment.ProcessorCount;
+
+        /// <summary>
+        ///     Gets or sets the preferred ML backend (null = platform default)
+        /// </summary>
+        public MLBackend? PreferredBackend { get; set; }
+    }
 }

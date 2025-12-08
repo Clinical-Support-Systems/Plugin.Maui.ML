@@ -142,12 +142,12 @@ public sealed class MLKitInfer : IMLInfer, IDisposable
         return RunInferenceAsync(floatInputs, cancellationToken);
     }
 
-    public Dictionary<string, NodeMetadata> GetInputMetadata()
+    public Dictionary<string, MLNodeMetadata> GetInputMetadata()
     {
         throw new NotSupportedException("TFLite metadata not exposed in Phase 1 implementation.");
     }
 
-    public Dictionary<string, NodeMetadata> GetOutputMetadata()
+    public Dictionary<string, MLNodeMetadata> GetOutputMetadata()
     {
         throw new NotSupportedException("TFLite metadata not exposed in Phase 1 implementation.");
     }
