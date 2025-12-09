@@ -109,7 +109,7 @@ public static class MLExtensions
 #if iOS
         return new Platforms.iOS.CoreMLInfer();
 #else
-        throw new PlatformNotSupportedException("CoreML backend is only available on Android.");
+        throw new PlatformNotSupportedException("CoreML backend is only available on iOS or macOS.");
 #endif
     }
 
