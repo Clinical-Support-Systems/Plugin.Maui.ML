@@ -28,7 +28,7 @@ public class MLExtensionsTests
         // Assert
         var serviceProvider = services.BuildServiceProvider();
         var mlService = serviceProvider.GetService<IMLInfer>();
-        var config = serviceProvider.GetService<MLConfiguration>();
+        var config = serviceProvider.GetService<MLExtensions.MLConfiguration>();
 
         Assert.NotNull(mlService);
         Assert.NotNull(config);
@@ -52,7 +52,7 @@ public class MLExtensionsTests
 
         // Assert
         var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<MLConfiguration>();
+        var config = serviceProvider.GetRequiredService<MLExtensions.MLConfiguration>();
 
         Assert.True(config.UseTransientService);
         Assert.True(config.EnablePerformanceLogging);

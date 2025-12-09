@@ -1,5 +1,6 @@
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using Plugin.Maui.ML;
 using Xunit;
 
 namespace Plugin.Maui.ML.Tests;
@@ -163,7 +164,7 @@ public class OnnxRuntimeInferTests
         Assert.NotEmpty(outputs);
     }
 
-    private static int GetSeqLenFromMetadata(Dictionary<string, NodeMetadata> meta, string inputName)
+    private static int GetSeqLenFromMetadata(Dictionary<string, MLNodeMetadata> meta, string inputName)
     {
         if (!meta.TryGetValue(inputName, out var node)) return 1;
         var dims = node.Dimensions;
