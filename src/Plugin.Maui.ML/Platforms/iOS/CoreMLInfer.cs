@@ -53,11 +53,11 @@ public class CoreMLInfer : IMLInfer, IDisposable
 
         await Task.Run(() =>
         {
-            lock (_lock)
+            lock (_lock) 
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                UnloadModel();
+                UnloadModelInternal(); 
 
                 try
                 {
@@ -92,6 +92,11 @@ public class CoreMLInfer : IMLInfer, IDisposable
     /// <returns>Task that completes when the model is loaded</returns>
     /// <exception cref="ArgumentNullException">Thrown if the model stream is null</exception>
     /// <exception cref="InvalidOperationException">Thrown if model loading fails</exception>
+    /// <remarks>
+    /// This method creates a temporary file to load the model. The temporary file is automatically
+    /// cleaned up when UnloadModel() is called or when the object is disposed. If the application
+    /// terminates unexpectedly, temporary files may remain in the system temp directory.
+    /// </remarks>
     public async Task LoadModelAsync(Stream modelStream, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(modelStream);
@@ -102,7 +107,7 @@ public class CoreMLInfer : IMLInfer, IDisposable
             lock (_lock)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                UnloadModel();
+                UnloadModelInternal();
             }
 
             using (var fileStream = File.Create(tempPath))
@@ -111,12 +116,16 @@ public class CoreMLInfer : IMLInfer, IDisposable
             }
 
             await LoadModelAsync(tempPath, cancellationToken);
-            _loadedModelPath = tempPath;
+            
+            
+            lock (_lock)
+            {
+                _loadedModelPath = tempPath;
+            }
         }
         catch
         {
-            if (File.Exists(tempPath))
-                File.Delete(tempPath);
+            CleanupTempFile(tempPath);
             throw;
         }
     }
@@ -135,7 +144,7 @@ public class CoreMLInfer : IMLInfer, IDisposable
             throw new ArgumentException("Asset name cannot be null or empty", nameof(assetName));
 
         var directAssetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assetName);
-        if (Directory.Exists(directAssetPath))
+        if (Directory.Exists(directAssetPath) || File.Exists(directAssetPath))
         {
             await LoadModelAsync(directAssetPath, cancellationToken);
             return;
@@ -162,11 +171,7 @@ public class CoreMLInfer : IMLInfer, IDisposable
             return;
         }
 
-        var assetPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assetName);
-        if (!File.Exists(assetPath) && !Directory.Exists(assetPath))
-            throw new FileNotFoundException($"Asset '{assetName}' not found in bundle or base directory");
-
-        await LoadModelAsync(assetPath, cancellationToken);
+        throw new FileNotFoundException($"Asset '{assetName}' not found in bundle or base directory");
     }
 
     /// <summary>
@@ -221,9 +226,11 @@ public class CoreMLInfer : IMLInfer, IDisposable
     /// <returns>Dictionary of output tensors (name → tensor)</returns>
     /// <exception cref="ArgumentException">Thrown if inputs are null or empty</exception>
     /// <exception cref="InvalidOperationException">Thrown if no model is loaded or inference fails</exception>
+    /// <exception cref="OverflowException">Thrown if token IDs exceed Int32.MaxValue</exception>
     /// <remarks>
     /// CoreML NLP models expect Int32 token IDs, but .NET ML libraries typically use Int64.
-    /// This method handles the conversion automatically.
+    /// This method handles the conversion automatically. Token IDs must be within the Int32 range
+    /// (−2,147,483,648 to 2,147,483,647). Values outside this range will cause an OverflowException.
     /// </remarks>
     public Task<Dictionary<string, Tensor<float>>> RunInferenceLongInputsAsync(
         Dictionary<string, Tensor<long>> inputs,
@@ -337,25 +344,7 @@ public class CoreMLInfer : IMLInfer, IDisposable
     {
         lock (_lock)
         {
-            _model?.Dispose();
-            _model = null;
-            _modelDescription = null;
-
-            if (!string.IsNullOrEmpty(_loadedModelPath) &&
-                _loadedModelPath.Contains(Path.GetTempPath()))
-            {
-                try
-                {
-                    if (File.Exists(_loadedModelPath))
-                        File.Delete(_loadedModelPath);
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
-            }
-
-            _loadedModelPath = null;
+            UnloadModelInternal();
         }
     }
 
@@ -379,7 +368,14 @@ public class CoreMLInfer : IMLInfer, IDisposable
 
         if (disposing)
         {
-            UnloadModel();
+            lock (_lock)
+            {
+                UnloadModelInternal();
+            }
+        }
+        else
+        {
+            CleanupTempFileIfNeeded();
         }
 
         _disposed = true;
@@ -396,6 +392,50 @@ public class CoreMLInfer : IMLInfer, IDisposable
     #region Private Helper Methods
 
     /// <summary>
+    /// Internal unload that doesn't acquire lock (must be called within lock)
+    /// </summary>
+    private void UnloadModelInternal()
+    {
+        _model?.Dispose();
+        _model = null;
+        _modelDescription = null;
+
+        CleanupTempFileIfNeeded();
+        _loadedModelPath = null;
+    }
+
+    /// <summary>
+    /// Cleanup temporary file if one exists
+    /// </summary>
+    private void CleanupTempFileIfNeeded()
+    {
+        if (!string.IsNullOrEmpty(_loadedModelPath) &&
+            _loadedModelPath.Contains(Path.GetTempPath()))
+        {
+            CleanupTempFile(_loadedModelPath);
+        }
+    }
+
+    /// <summary>
+    /// Safely delete a temporary file, ignoring errors
+    /// </summary>
+    private static void CleanupTempFile(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // Ignore cleanup errors
+        }
+    }
+
+    /// <summary>
     /// Convert long tensor inputs to CoreML MLFeatureProvider using Int32.
     /// CoreML NLP models expect Int32 for token IDs, not Int64.
     /// </summary>
@@ -404,6 +444,7 @@ public class CoreMLInfer : IMLInfer, IDisposable
     /// - .NET ML libraries (ONNX Runtime, ML.NET) use Int64 for token IDs
     /// - CoreML models are compiled with Int32 input types for token IDs
     /// </remarks>
+    /// <exception cref="OverflowException">Thrown if any token ID exceeds Int32.MaxValue</exception>
     private IMLFeatureProvider ConvertLongInputsToMLFeatureProvider(Dictionary<string, Tensor<long>> inputs)
     {
         var features = new NSMutableDictionary<NSString, NSObject>();
@@ -429,7 +470,16 @@ public class CoreMLInfer : IMLInfer, IDisposable
 
             for (int i = 0; i < array.Length; i++)
             {
-                mlArray[i] = NSNumber.FromInt32((int)array[i]);
+                try
+                {
+                    mlArray[i] = NSNumber.FromInt32(checked((int)array[i]));
+                }
+                catch (OverflowException)
+                {
+                    throw new OverflowException(
+                        $"Token ID at index {i} in input '{input.Key}' exceeds Int32.MaxValue. " +
+                        $"Value: {array[i]}, Max allowed: {int.MaxValue}");
+                }
             }
 
             var featureValue = MLFeatureValue.Create(mlArray);
