@@ -68,13 +68,13 @@ public interface IMLInfer
     ///     Get input metadata for the loaded model
     /// </summary>
     /// <returns>Dictionary of input names and their metadata</returns>
-    Dictionary<string, NodeMetadata> GetInputMetadata();
+    Dictionary<string, MLNodeMetadata> GetInputMetadata();
 
     /// <summary>
     ///     Get output metadata for the loaded model
     /// </summary>
     /// <returns>Dictionary of output names and their metadata</returns>
-    Dictionary<string, NodeMetadata> GetOutputMetadata();
+    Dictionary<string, MLNodeMetadata> GetOutputMetadata();
 
     /// <summary>
     ///     Dispose of the loaded model and release resources
