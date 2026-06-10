@@ -16,6 +16,7 @@ graph TB
     subgraph "Backend Implementations"
         ONNX["OnnxRuntimeInfer<br/>(Cross-Platform)"]
         COREML["CoreMLInfer<br/>(iOS/macOS Native)"]
+        COREAI["CoreAIInfer<br/>(iOS Scaffold)"]
         MLKIT["MLKitInfer<br/>(Android - Future)"]
         WINML["WindowsMLInfer<br/>(Windows - Future)"]
     end
@@ -44,6 +45,7 @@ graph TB
     
     IMLIF --> ONNX
     IMLIF --> COREML
+    IMLIF --> COREAI
     IMLIF --> MLKIT
     IMLIF --> WINML
     
@@ -59,6 +61,9 @@ graph TB
     
     COREML --> NE
     COREML --> CPU
+
+    COREAI -.-> NE
+    COREAI -.-> CPU
     
     MLKIT -.-> NNAPI
     MLKIT -.-> CPU
@@ -71,6 +76,7 @@ graph TB
     style PLUGIN fill:#4CAF50,stroke:#2E7D32,color:#fff
     style ONNX fill:#2196F3,stroke:#1565C0,color:#fff
     style COREML fill:#FF9800,stroke:#E65100,color:#fff
+    style COREAI fill:#7E57C2,stroke:#4527A0,color:#fff
     style MLKIT fill:#9C27B0,stroke:#4A148C,color:#fff
     style WINML fill:#00BCD4,stroke:#006064,color:#fff
     style NE fill:#FFE0B2,stroke:#E65100
@@ -135,6 +141,16 @@ public class CoreMLInfer : IMLInfer
 }
 ```
 
+#### Core AI (iOS scaffold)
+```csharp
+public class CoreAIInfer : IMLInfer
+{
+    public MLBackend Backend => MLBackend.CoreAI;
+    // Placeholder for the new Apple AI framework
+    // Requires Apple Core AI bindings before real inference can be wired up
+}
+```
+
 ### 4. Platform Wrappers
 Provide platform-specific optimizations while using base implementations.
 
@@ -150,6 +166,11 @@ public class PlatformMLInfer : OnnxRuntimeInfer
     {
         return new CoreMLInfer(); // Factory for pure CoreML
     }
+
+    public static IMLInfer CreateCoreAIInfer()
+    {
+        return new CoreAIInfer(); // Factory for Core AI scaffold
+    }
 }
 ```
 
@@ -158,6 +179,7 @@ public class PlatformMLInfer : OnnxRuntimeInfer
 | Platform | Primary | Secondary | Fallback |
 |----------|---------|-----------|----------|
 | **iOS/macOS** | Neural Engine | CoreML | CPU |
+| **iOS (Core AI)** | Neural Engine | Core AI | CPU |
 | **Android** | NPU via NNAPI | GPU | CPU |
 | **Windows** | GPU via DirectML | - | CPU |
 
@@ -244,9 +266,11 @@ graph TD
     
     Q3 -->|Yes| COREML[Use CoreMLInfer]
     Q3 -->|No| Q6{Max Performance?}
-    
+
     Q6 -->|Yes, convert model| COREML
     Q6 -->|No, use ONNX| ONNX_IOS[Use ONNX + CoreML EP]
+
+    Q3 -->|Maybe want new Apple AI APIs| COREAI[Use CoreAIInfer]
     
     Q4 -->|Yes| MLKIT[Use MLKitInfer<br/>Coming Soon]
     Q4 -->|No| ONNX_ANDROID[Use ONNX + NNAPI EP]

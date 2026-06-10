@@ -106,6 +106,16 @@ public class MLExtensionsTests
         Assert.Same(mlService1, mlService2);
     }
 
+    [Fact]
+    public void AddMauiML_WithCoreAIBackend_ThrowsOnNonIOSPlatforms()
+    {
+        var services = new ServiceCollection();
+        services.AddMauiML(MLBackend.CoreAI);
+        var sp = services.BuildServiceProvider();
+
+        Assert.Throws<PlatformNotSupportedException>(() => sp.GetRequiredService<IMLInfer>());
+    }
+
     // NEW COVERAGE BELOW
 
     [Fact]

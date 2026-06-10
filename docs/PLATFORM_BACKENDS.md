@@ -17,7 +17,13 @@ Plugin.Maui.ML now supports multiple ML inference backends, allowing you to choo
 - **Best for**: Native CoreML models (.mlmodel, .mlmodelc)
 - **Hardware Acceleration**: Apple Neural Engine (A12+, M1+)
 
-### 3. ML Kit / TensorFlow Lite (Android) — `Plugin.Maui.ML.TFLite`
+### 3. Core AI (iOS) — scaffolded
+- **Platforms**: iOS 27+
+- **Best for**: New Apple AI workflows and model APIs
+- **Hardware Acceleration**: Apple silicon CPU, GPU, Neural Engine
+- **Notes**: The backend surface is present in this repo, but the .NET bindings for Apple Core AI are not yet shipped here.
+
+### 4. ML Kit / TensorFlow Lite (Android) — `Plugin.Maui.ML.TFLite`
 - **Platforms**: Android 8.1+ (API 27+)
 - **Best for**: TensorFlow Lite models (`.tflite`)
 - **Hardware Acceleration**: NNAPI, GPU delegates
@@ -26,7 +32,7 @@ Plugin.Maui.ML now supports multiple ML inference backends, allowing you to choo
   has 0x1000 alignment and does not yet pass Android 16 KB validation. Only add this package when
   you explicitly need TFLite inference.
 
-### 4. Windows ML (Windows) - Coming Soon
+### 5. Windows ML (Windows) - Coming Soon
 - **Platforms**: Windows 10 1809+, Windows 11
 - **Best for**: Windows-optimized models
 - **Hardware Acceleration**: DirectML, DirectX 12
@@ -66,6 +72,10 @@ builder.Services.AddMauiML(MLBackend.OnnxRuntime);
 builder.Services.AddMauiML(MLBackend.CoreML);
 #endif
 
+#if IOS
+builder.Services.AddMauiML(MLBackend.CoreAI);
+#endif
+
 // Use TFLite on Android — requires the Plugin.Maui.ML.TFLite package
 #if ANDROID
 builder.Services.AddMauiMLKit();
@@ -93,6 +103,10 @@ IMLInfer onnxInfer = new OnnxRuntimeInfer();
 IMLInfer coreMLInfer = new CoreMLInfer();
 #endif
 
+#if IOS
+IMLInfer coreAIInfer = new Platforms.iOS.CoreAIInfer();
+#endif
+
 // Or use platform factory methods
 #if IOS
 IMLInfer nativeInfer = Platforms.iOS.PlatformMLInfer.CreateCoreMLInfer();
@@ -105,6 +119,7 @@ IMLInfer nativeInfer = Platforms.iOS.PlatformMLInfer.CreateCoreMLInfer();
 |---------|------------------|----------------|
 | ONNX Runtime | `.onnx` | Use `torch.onnx.export()`, `tf2onnx`, etc. |
 | CoreML | `.mlmodel`, `.mlmodelc` | Use `coremltools`, `onnx-coreml` |
+| Core AI | Apple AI formats | Requires Apple Core AI bindings |
 | ML Kit | `.tflite` | Use TensorFlow Lite converter |
 | Windows ML | `.onnx`, `.onnxmodel` | Same as ONNX Runtime |
 

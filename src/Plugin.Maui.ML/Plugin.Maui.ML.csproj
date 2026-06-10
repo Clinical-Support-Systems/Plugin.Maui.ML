@@ -15,10 +15,10 @@
 		<PackageId>Plugin.Maui.ML</PackageId>
 		<PackageVersion>1.0.0</PackageVersion>
 		<Authors>Clinical Support Systems</Authors>
-		<Description>A .NET MAUI plugin that provides ML inference with multiple backends: ONNX Runtime, CoreML (iOS/macOS), and platform-native acceleration</Description>
+		<Description>A .NET MAUI plugin that provides ML inference with multiple backends: ONNX Runtime, CoreML (iOS/macOS), Core AI (iOS scaffold), and platform-native acceleration</Description>
 		<PackageProjectUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Clinical-Support-Systems/Plugin.Maui.ML</RepositoryUrl>
-		<PackageTags>maui;ml;onnx;inference;plugin;coreml;mlkit;tensorflow;machinelearning</PackageTags>
+		<PackageTags>maui;ml;onnx;inference;plugin;coreml;coreai;mlkit;tensorflow;machinelearning</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

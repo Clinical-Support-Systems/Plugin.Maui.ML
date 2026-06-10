@@ -29,6 +29,16 @@ public enum MLBackend
     CoreML,
 
     /// <summary>
+    ///     Provides access to Apple Core AI capabilities on iOS.
+    /// </summary>
+    /// <remarks>
+    ///     This backend is intended for the new Apple Core AI / Foundation Models surface on iOS.
+    ///     The repository currently ships a placeholder implementation because the public .NET bindings
+    ///     for the framework are not yet available in this project.
+    /// </remarks>
+    CoreAI,
+
+    /// <summary>
     ///     Provides access to machine learning functionalities and utilities within the application.
     /// </summary>
     /// <remarks>

@@ -89,6 +89,7 @@ public static class MLExtensions
         {
             MLBackend.OnnxRuntime => new OnnxRuntimeInfer(),
             MLBackend.CoreML => CreateCoreMLOrThrow(),
+            MLBackend.CoreAI => CreateCoreAIOrThrow(),
             MLBackend.MLKit => CreateMlKitOrThrow(),
             MLBackend.WindowsML => throw new NotImplementedException(
                 "Windows ML backend is not yet implemented. Use OnnxRuntime with DirectML execution provider."),
@@ -106,10 +107,22 @@ public static class MLExtensions
     }
     private static IMLInfer CreateCoreMLOrThrow()
     {
-#if iOS
+#if IOS
         return new Platforms.iOS.CoreMLInfer();
+#elif MACCATALYST || MACOS
+        return new Platforms.MacCatalyst.CoreMLInfer();
 #else
         throw new PlatformNotSupportedException("CoreML backend is only available on iOS or macOS.");
+#endif
+    }
+
+    private static IMLInfer CreateCoreAIOrThrow()
+    {
+#if IOS
+        return new Platforms.iOS.CoreAIInfer();
+#else
+        throw new PlatformNotSupportedException(
+            "Core AI backend requires the iOS Apple SDK binding package and is not available on this platform.");
 #endif
     }
 

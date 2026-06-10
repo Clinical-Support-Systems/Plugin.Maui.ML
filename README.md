@@ -13,11 +13,13 @@ A comprehensive .NET MAUI plugin that provides ML inference capabilities with su
 graph TB
     A["IMLInfer Interface"] --> B["OnnxRuntimeInfer"]
     A --> C["CoreMLInfer (iOS/macOS)"]
+    A --> C2["CoreAIInfer (iOS) - Scaffolded"]
     A --> D["MLKitInfer (Android) - Coming Soon"]
     A --> E["WindowsMLInfer (Windows) - Coming Soon"]
     
     B --> F["Cross-Platform ONNX Models"]
     C --> G["Apple Vision/CoreML Models"]
+    C2 --> G2["Apple Core AI / Foundation Models"]
     D --> H["TFLite/MLKit Models"]
     E --> I["Windows ML Models"]
     
@@ -28,6 +30,7 @@ graph TB
     style A fill:#4CAF50,stroke:#2E7D32,color:#fff
     style B fill:#2196F3,stroke:#1565C0,color:#fff
     style C fill:#FF9800,stroke:#E65100,color:#fff
+    style C2 fill:#7E57C2,stroke:#4527A0,color:#fff
     style D fill:#9C27B0,stroke:#4A148C,color:#fff
     style E fill:#00BCD4,stroke:#006064,color:#fff
 ```
@@ -42,7 +45,7 @@ graph TB
 
 ## Features
 
-- 🧠 **Multiple ML Backends**: ONNX Runtime, CoreML (iOS/macOS), ML Kit (Android - coming soon)
+- 🧠 **Multiple ML Backends**: ONNX Runtime, CoreML (iOS/macOS), Core AI (iOS scaffold), ML Kit (Android - coming soon)
 - 🏗️ **Platform-Specific Optimizations**: Leverages native ML acceleration on each platform
   - iOS/macOS: CoreML execution provider & Apple Neural Engine
   - Android: NNAPI execution provider
@@ -87,6 +90,7 @@ public static class MauiProgram
 
         // Or specify a backend explicitly
         // builder.Services.AddMauiML(MLBackend.CoreML); // iOS/macOS only
+        // builder.Services.AddMauiML(MLBackend.CoreAI); // iOS only, requires Apple Core AI bindings
 
         return builder.Build();
     }
@@ -174,6 +178,7 @@ dotnet run -- convert --repo d4data/biomedical-ner-all --task token-classificati
 |---------|-----------|--------|----------------------|
 | **ONNX Runtime** | All | ✅ Stable | CoreML (iOS/macOS), NNAPI (Android), DirectML (Windows) |
 | **CoreML** | iOS/macOS | ✅ Stable | Apple Neural Engine (A12+, M1+) |
+| **Core AI** | iOS | ⚠ Scaffolded | Apple Core AI bindings required |
 | **ML Kit** | Android | 🚧 Coming Soon | NNAPI, GPU delegates |
 | **Windows ML** | Windows | 🚧 Coming Soon | DirectML, DirectX 12 |
 
@@ -185,6 +190,7 @@ builder.Services.AddMauiML();
 
 // Explicit backend
 builder.Services.AddMauiML(MLBackend.CoreML); // iOS/macOS only
+builder.Services.AddMauiML(MLBackend.CoreAI); // iOS only, requires Apple Core AI bindings
 
 // Configuration-based
 builder.Services.AddMauiML(config =>
@@ -205,6 +211,7 @@ IMLInfer coreMLInfer = new CoreMLInfer();
 |---------|---------|-------|
 | ONNX Runtime | `.onnx` | Cross-platform, largest model zoo |
 | CoreML | `.mlmodel`, `.mlmodelc` | Native iOS/macOS format |
+| Core AI | Apple AI models | Requires generated Apple bindings |
 | ML Kit | `.tflite` | Android-optimized |
 
 See [Platform Backend Documentation](docs/PLATFORM_BACKENDS.md) for detailed information about backends, model conversion, and performance optimization.
@@ -309,6 +316,7 @@ builder.Services.AddMauiML(config =>
 ### iOS/macOS
 - **CoreML Integration**: Automatic CoreML acceleration via ONNX Runtime
 - **Pure CoreML Support**: Use native `.mlmodel` files with `CoreMLInfer`
+- **Core AI Surface**: Opt-in `MLBackend.CoreAI` placeholder for the new Apple AI framework
 - **Neural Engine**: Support for Apple Neural Engine on A12+ and M1+ chips
 - **Bundle Resources**: Load models from iOS/macOS app bundles
 - **Check Capabilities**: `PlatformMLInfer.IsNeuralEngineAvailable()`
