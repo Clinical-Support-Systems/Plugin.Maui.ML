@@ -30,14 +30,40 @@ public sealed class MLKitInfer : IMLInfer, IDisposable
     public MLBackend Backend => MLBackend.MLKit;
     public bool IsModelLoaded => _interpreter != null;
 
-    public async Task LoadModelAsync(string modelPath, CancellationToken cancellationToken = default)
+    public Task LoadModelAsync(string modelPath, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(modelPath))
             throw new ArgumentException("Model path cannot be null or empty", nameof(modelPath));
-        if (!File.Exists(modelPath))
+
+        if (!System.IO.File.Exists(modelPath))
             throw new FileNotFoundException($"Model file not found: {modelPath}");
-        var bytes = await File.ReadAllBytesAsync(modelPath, cancellationToken).ConfigureAwait(false);
-        Initialize(bytes);
+
+        return Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                using var inputStream = new Java.IO.FileInputStream(modelPath);
+
+                var channel = inputStream.Channel
+                              ?? throw new InvalidOperationException("Could not get FileChannel for model file.");
+
+                var length = new FileInfo(modelPath).Length;
+
+                var mappedBuffer = channel.Map(
+                    Java.Nio.Channels.FileChannel.MapMode.ReadOnly!,
+                    0,
+                    length);
+
+                Initialize(mappedBuffer);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to memory-map TFLite model file '{modelPath}': {ex.Message}", ex);
+            }
+        }, cancellationToken);
     }
 
     public async Task LoadModelAsync(Stream modelStream, CancellationToken cancellationToken = default)
