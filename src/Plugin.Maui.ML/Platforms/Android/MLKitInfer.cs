@@ -35,15 +35,15 @@ public sealed class MLKitInfer : IMLInfer, IDisposable
         if (string.IsNullOrWhiteSpace(modelPath))
             throw new ArgumentException("Model path cannot be null or empty", nameof(modelPath));
 
-        if (!System.IO.File.Exists(modelPath))
-            throw new FileNotFoundException($"Model file not found: {modelPath}");
-
         return Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
+                if (!System.IO.File.Exists(modelPath))
+                    throw new FileNotFoundException($"Model file not found: {modelPath}");
+
                 using var inputStream = new Java.IO.FileInputStream(modelPath);
 
                 var channel = inputStream.Channel
