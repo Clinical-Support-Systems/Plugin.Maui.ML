@@ -56,6 +56,9 @@ public sealed class MLKitInfer : IMLInfer, IDisposable
                     0,
                     length);
 
+                if (mappedBuffer == null)
+                    throw new InvalidOperationException("FileChannel.Map returned null for model file.");
+
                 Initialize(mappedBuffer);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -103,6 +106,9 @@ public sealed class MLKitInfer : IMLInfer, IDisposable
                         FileChannel.MapMode.ReadOnly!,
                         afd.StartOffset,
                         afd.DeclaredLength);
+
+                    if (mappedBuffer == null)
+                        throw new InvalidOperationException("FileChannel.Map returned null for model asset.");
 
                     Initialize(mappedBuffer);
                 }
