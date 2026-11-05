@@ -77,9 +77,9 @@ public class CoreMLInfer : IMLInfer, IDisposable
                         //CpuOnly             : CPU only. Background-safe and predictable. No ANE/GPU compile cost on first load.
                         //                      Often fastest for small models (dispatch overhead is avoided) but uses the most CPU and power.
                         //CpuAndGpu           : CPU + GPU, no Neural Engine. NOT background-safe: GPU work is not allowed when the
-                        //                      app is backgrounded and can abort (SIGABRT). Crashed on Person NER in testing.
+                        //                      app is backgrounded and can abort (SIGABRT). 
                         //All                 : Lets CoreML choose among CPU, GPU and Neural Engine. Can be fast, but may use the GPU,
-                        //                      so it is NOT background-safe. Showed slow, inconsistent results on Person NER (~1.5 s vs ~100 ms).
+                        //                      so it is NOT background-safe. 
                         //CPUAndNeuralEngine  : CPU + Neural Engine, no GPU. Background-safe uptil iOS 26.6 and power-efficient. Recommended default.
                         //                      Starting iOS 27, neural engine is restricted in background without the appropriate entitlement.
                     };
