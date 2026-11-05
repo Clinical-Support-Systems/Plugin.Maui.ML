@@ -73,7 +73,15 @@ public class CoreMLInfer : IMLInfer, IDisposable
                     var url = NSUrl.FromFilename(modelPath);
                     var configuration = new MLModelConfiguration
                     {
-                        ComputeUnits = MLComputeUnits.All
+                        ComputeUnits = MLComputeUnits.CPUAndNeuralEngine
+                        //CpuOnly             : CPU only. Background-safe and predictable. No ANE/GPU compile cost on first load.
+                        //                      Often fastest for small models (dispatch overhead is avoided) but uses the most CPU and power.
+                        //CpuAndGpu           : CPU + GPU, no Neural Engine. NOT background-safe: GPU work is not allowed when the
+                        //                      app is backgrounded and can abort (SIGABRT). Crashed on Person NER in testing.
+                        //All                 : Lets CoreML choose among CPU, GPU and Neural Engine. Can be fast, but may use the GPU,
+                        //                      so it is NOT background-safe. Showed slow, inconsistent results on Person NER (~1.5 s vs ~100 ms).
+                        //CPUAndNeuralEngine  : CPU + Neural Engine, no GPU. Background-safe uptil iOS 26.6 and power-efficient. Recommended default.
+                        //                      Starting iOS 27, neural engine is restricted in background without the appropriate entitlement.
                     };
 
                     _model = MLModel.Create(url, configuration, out var error);
